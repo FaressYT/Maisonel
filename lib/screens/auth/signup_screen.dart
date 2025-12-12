@@ -32,9 +32,9 @@ class _SignupScreenState extends State<SignupScreen> {
   void _handleSignup() async {
     if (!_acceptTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please accept the terms and conditions'),
-          backgroundColor: AppColors.error,
+        SnackBar(
+          content: const Text('Please accept the terms and conditions'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -115,24 +115,26 @@ class _SignupScreenState extends State<SignupScreen> {
                         const SizedBox(height: AppSpacing.lg),
                         Text(
                           'Create Account',
-                          style: AppTypography.h2.copyWith(
-                            color: AppColors.textWhite,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.displaySmall
+                              ?.copyWith(
+                                color: AppColors.textWhite,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           'Join Maisonel today',
-                          style: AppTypography.bodyLarge.copyWith(
-                            color: AppColors.textWhite.withOpacity(0.9),
-                          ),
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                color: AppColors.textWhite.withOpacity(0.9),
+                              ),
                         ),
                         const SizedBox(height: AppSpacing.xl),
                         // Signup Form Card
                         Container(
                           padding: const EdgeInsets.all(AppSpacing.lg),
                           decoration: BoxDecoration(
-                            color: AppColors.cardBackground,
+                            color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(AppRadius.lg),
                             boxShadow: AppShadows.large,
                           ),
@@ -223,7 +225,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                             _acceptTerms = value ?? false;
                                           });
                                         },
-                                        activeColor: AppColors.primary,
+                                        activeColor: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
                                       ),
                                     ),
                                     const SizedBox(width: AppSpacing.sm),
@@ -232,7 +236,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                         children: [
                                           Text(
                                             'I agree to the ',
-                                            style: AppTypography.bodySmall,
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.bodySmall,
                                           ),
                                           InkWell(
                                             onTap: () {
@@ -240,9 +246,13 @@ class _SignupScreenState extends State<SignupScreen> {
                                             },
                                             child: Text(
                                               'Terms and Conditions',
-                                              style: AppTypography.bodySmall
-                                                  .copyWith(
-                                                    color: AppColors.primary,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.copyWith(
+                                                    color: Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                             ),
@@ -266,7 +276,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                   children: [
                                     Text(
                                       'Already have an account? ',
-                                      style: AppTypography.bodyMedium,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
                                     ),
                                     TextButton(
                                       onPressed: () {
@@ -274,9 +286,13 @@ class _SignupScreenState extends State<SignupScreen> {
                                       },
                                       child: Text(
                                         'Login',
-                                        style: AppTypography.bodyMedium
-                                            .copyWith(
-                                              color: AppColors.primary,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
                                               fontWeight: FontWeight.bold,
                                             ),
                                       ),

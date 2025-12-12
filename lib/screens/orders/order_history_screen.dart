@@ -37,7 +37,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Order History'),
         automaticallyImplyLeading: false,
@@ -47,7 +46,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           // Status Filter
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
-            color: AppColors.cardBackground,
+            color: Theme.of(context).cardColor,
             child: SizedBox(
               height: 40,
               child: ListView.builder(
@@ -66,17 +65,18 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           _filterStatus = status;
                         });
                       },
-                      backgroundColor: AppColors.surfaceLight,
-                      selectedColor: AppColors.primary,
-                      labelStyle: AppTypography.bodyMedium.copyWith(
-                        color: isSelected
-                            ? AppColors.textWhite
-                            : AppColors.textPrimary,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.normal,
-                      ),
-                      checkmarkColor: AppColors.textWhite,
+                      backgroundColor: Theme.of(context).canvasColor,
+                      selectedColor: Theme.of(context).colorScheme.primary,
+                      labelStyle: Theme.of(context).textTheme.bodyMedium
+                          ?.copyWith(
+                            color: isSelected
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).textTheme.bodyMedium?.color,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                      checkmarkColor: Theme.of(context).colorScheme.onPrimary,
                     ),
                   );
                 },
@@ -122,14 +122,17 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               color: AppColors.textHint,
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text('No orders found', style: AppTypography.h5),
+            Text(
+              'No orders found',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               _filterStatus == 'All'
                   ? 'You haven\'t made any bookings yet'
                   : 'No $_filterStatus orders',
-              style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).textTheme.bodySmall?.color,
               ),
               textAlign: TextAlign.center,
             ),
@@ -146,7 +149,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.cardBackground,
+          color: Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(AppRadius.md),
           boxShadow: AppShadows.medium,
         ),
@@ -237,7 +240,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceLight,
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Column(
@@ -274,16 +277,17 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     children: [
                       Text(
                         'Total Cost',
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: AppColors.textSecondary,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
                         ),
                       ),
                       Text(
                         '\$${order.totalCost.toStringAsFixed(0)}',
-                        style: AppTypography.h5.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ],
                   ),
@@ -335,9 +339,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       isScrollControlled: true,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.only(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(AppRadius.lg),
             topRight: Radius.circular(AppRadius.lg),
           ),
@@ -367,21 +371,33 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Order ID: ${order.id}', style: AppTypography.caption),
-                    const SizedBox(height: AppSpacing.md),
-                    Text('Property Details', style: AppTypography.h6),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(order.property.title, style: AppTypography.bodyLarge),
                     Text(
-                      order.property.description,
-                      style: AppTypography.bodySmall,
+                      'Order ID: ${order.id}',
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    Text('Booking Information', style: AppTypography.h6),
+                    Text(
+                      'Property Details',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      order.property.title,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    Text(
+                      order.property.description,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'Booking Information',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       'Booked on: ${DateFormat('MMM dd, yyyy').format(order.bookingDate)}',
-                      style: AppTypography.bodyMedium,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
                 ),

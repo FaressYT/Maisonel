@@ -23,7 +23,6 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('My Listings'),
         automaticallyImplyLeading: false,
@@ -69,7 +68,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
             ),
           );
         },
-        backgroundColor: AppColors.primary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         icon: const Icon(Icons.add),
         label: const Text('Add Listing'),
       ),
@@ -86,22 +85,25 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
             Container(
               padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
-                color: AppColors.primaryLight.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.add_business,
                 size: 80,
-                color: AppColors.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text('No listings yet', style: AppTypography.h4),
+            Text(
+              'No listings yet',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Start adding your properties to rent them out',
-              style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).textTheme.bodySmall?.color,
               ),
               textAlign: TextAlign.center,
             ),
@@ -114,7 +116,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
   Widget _buildListingCard(Property property) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: AppShadows.medium,
       ),
@@ -131,7 +133,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.surfaceLight,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(AppRadius.md),
                 bottomRight: Radius.circular(AppRadius.md),
@@ -143,15 +145,15 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                 Expanded(
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.visibility,
                         size: 16,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '${(property.reviewCount * 2.5).toInt()} views',
-                        style: AppTypography.bodySmall,
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
@@ -167,7 +169,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                     );
                   },
                   icon: const Icon(Icons.edit_outlined),
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                   tooltip: 'Edit',
                 ),
                 // Delete button
@@ -176,7 +178,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                     _showDeleteConfirmation(property);
                   },
                   icon: const Icon(Icons.delete_outline),
-                  color: AppColors.error,
+                  color: Theme.of(context).colorScheme.error,
                   tooltip: 'Delete',
                 ),
                 // Toggle active/inactive
@@ -191,7 +193,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                       ),
                     );
                   },
-                  activeThumbColor: AppColors.success,
+                  activeColor: Colors.green, // Fallback for success
                 ),
               ],
             ),
@@ -205,18 +207,21 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Listing', style: AppTypography.h5),
+        title: Text(
+          'Delete Listing',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         content: Text(
           'Are you sure you want to delete "${property.title}"? This action cannot be undone.',
-          style: AppTypography.bodyMedium,
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               'Cancel',
-              style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).textTheme.bodySmall?.color,
               ),
             ),
           ),
@@ -229,14 +234,14 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Listing deleted'),
-                  backgroundColor: AppColors.success,
+                  backgroundColor: Colors.green,
                 ),
               );
             },
             child: Text(
               'Delete',
-              style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.error,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.error,
                 fontWeight: FontWeight.bold,
               ),
             ),

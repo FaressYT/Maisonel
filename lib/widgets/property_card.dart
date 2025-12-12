@@ -20,7 +20,7 @@ class PropertyCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.cardBackground,
+          color: Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(AppRadius.md),
           boxShadow: AppShadows.medium,
         ),
@@ -38,29 +38,33 @@ class PropertyCard extends StatelessWidget {
                   child: Container(
                     height: 180,
                     width: double.infinity,
-                    color: AppColors.surfaceLight,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     child: property.images.isNotEmpty
                         ? Image.network(
                             property.images.first,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
-                                color: AppColors.surfaceLight,
-                                child: const Center(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                                child: Center(
                                   child: Icon(
                                     Icons.home,
                                     size: 48,
-                                    color: AppColors.textHint,
+                                    color: Theme.of(context).hintColor,
                                   ),
                                 ),
                               );
                             },
                           )
-                        : const Center(
+                        : Center(
                             child: Icon(
                               Icons.home,
                               size: 48,
-                              color: AppColors.textHint,
+                              color: Theme.of(context).hintColor,
                             ),
                           ),
                   ),
@@ -81,7 +85,7 @@ class PropertyCard extends StatelessWidget {
                       ),
                       child: Text(
                         'FEATURED',
-                        style: AppTypography.caption.copyWith(
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppColors.textWhite,
                           fontWeight: FontWeight.bold,
                           fontSize: 10,
@@ -101,7 +105,7 @@ class PropertyCard extends StatelessWidget {
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.favorite_border, size: 20),
-                        color: AppColors.error,
+                        color: Theme.of(context).colorScheme.error,
                         onPressed: () {
                           // TODO: Implement favorite functionality
                         },
@@ -119,7 +123,7 @@ class PropertyCard extends StatelessWidget {
                   // Title
                   Text(
                     property.title,
-                    style: AppTypography.h6,
+                    style: Theme.of(context).textTheme.headlineSmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -127,16 +131,16 @@ class PropertyCard extends StatelessWidget {
                   // Location
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.location_on,
                         size: 14,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           '${property.location}, ${property.city}',
-                          style: AppTypography.bodySmall,
+                          style: Theme.of(context).textTheme.bodySmall,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -147,14 +151,20 @@ class PropertyCard extends StatelessWidget {
                   // Property Info
                   Row(
                     children: [
-                      _buildInfoChip(Icons.bed, '${property.bedrooms} Beds'),
+                      _buildInfoChip(
+                        context,
+                        Icons.bed,
+                        '${property.bedrooms} Beds',
+                      ),
                       const SizedBox(width: AppSpacing.sm),
                       _buildInfoChip(
+                        context,
                         Icons.bathtub,
                         '${property.bathrooms} Baths',
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       _buildInfoChip(
+                        context,
                         Icons.square_foot,
                         '${property.area.toInt()} m²',
                       ),
@@ -175,18 +185,18 @@ class PropertyCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             '${property.rating} (${property.reviewCount})',
-                            style: AppTypography.bodySmall.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
                       Text(
                         '\$${property.price.toStringAsFixed(0)}/mo',
-                        style: AppTypography.h6.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ],
                   ),
@@ -199,13 +209,20 @@ class PropertyCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String label) {
+  Widget _buildInfoChip(BuildContext context, IconData icon, String label) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: AppColors.textSecondary),
+        Icon(
+          icon,
+          size: 14,
+          color: Theme.of(context).textTheme.bodySmall?.color,
+        ),
         const SizedBox(width: 2),
-        Text(label, style: AppTypography.caption.copyWith(fontSize: 11)),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
+        ),
       ],
     );
   }

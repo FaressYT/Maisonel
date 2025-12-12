@@ -69,17 +69,19 @@ class PropertyDetailsScreen extends StatelessWidget {
                             const SizedBox(height: AppSpacing.xs),
                             Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.location_on,
                                   size: 16,
-                                  color: AppColors.primary,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
                                 const SizedBox(width: AppSpacing.xs),
                                 Text(
                                   '${property.location}, ${property.city}',
                                   style: Theme.of(context).textTheme.bodyMedium
                                       ?.copyWith(
-                                        color: AppColors.textSecondary,
+                                        color: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall?.color,
                                       ),
                                 ),
                               ],
@@ -93,7 +95,7 @@ class PropertyDetailsScreen extends StatelessWidget {
                             '\$${property.price.toInt()}',
                             style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
-                                  color: AppColors.primary,
+                                  color: Theme.of(context).colorScheme.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -209,7 +211,11 @@ class PropertyDetailsScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppColors.textSecondary),
+          Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).textTheme.bodySmall?.color,
+          ),
           const SizedBox(width: AppSpacing.sm),
           Text(
             label,

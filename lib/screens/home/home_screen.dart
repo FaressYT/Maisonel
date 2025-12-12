@@ -41,7 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
@@ -72,16 +71,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           'Hello, ${_currentUser.name.split(' ').first} 👋',
-                          style: AppTypography.h4.copyWith(
-                            color: AppColors.textWhite,
-                          ),
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(color: AppColors.textWhite),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Find your dream home',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.textWhite.withOpacity(0.9),
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: AppColors.textWhite.withOpacity(0.9),
+                              ),
                         ),
                       ],
                     ),
@@ -118,17 +117,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                   _selectedCategory = category;
                                 });
                               },
-                              backgroundColor: AppColors.cardBackground,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).cardTheme.color,
                               selectedColor: AppColors.primary,
-                              labelStyle: AppTypography.bodyMedium.copyWith(
-                                color: isSelected
-                                    ? AppColors.textWhite
-                                    : AppColors.textPrimary,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.normal,
-                              ),
-                              checkmarkColor: AppColors.textWhite,
+                              labelStyle: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: isSelected
+                                        ? Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary
+                                        : Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium?.color,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                  ),
+                              checkmarkColor: Theme.of(
+                                context,
+                              ).colorScheme.onPrimary,
                             ),
                           );
                         },
@@ -144,15 +152,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Featured', style: AppTypography.h5),
+                            Text(
+                              'Featured',
+                              style: Theme.of(context).textTheme.headlineMedium,
+                            ),
                             TextButton(
                               onPressed: () {},
                               child: Text(
                                 'See All',
-                                style: AppTypography.bodyMedium.copyWith(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                               ),
                             ),
                           ],
@@ -201,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: Text(
                         'Popular Properties',
-                        style: AppTypography.h5,
+                        style: Theme.of(context).textTheme.headlineMedium,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),

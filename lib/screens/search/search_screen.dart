@@ -116,7 +116,6 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Search Properties'),
         automaticallyImplyLeading: false,
@@ -137,11 +136,9 @@ class _SearchScreenState extends State<SearchScreen> {
                       hintText: 'Search properties...',
                       prefixIcon: const Icon(Icons.search),
                       filled: true,
-                      fillColor: AppColors.cardBackground,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide.none,
-                      ),
+                      fillColor: Theme.of(
+                        context,
+                      ).inputDecorationTheme.fillColor,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -152,23 +149,24 @@ class _SearchScreenState extends State<SearchScreen> {
                       hintText: 'Location',
                       prefixIcon: const Icon(Icons.location_on),
                       filled: true,
-                      fillColor: AppColors.cardBackground,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide.none,
-                      ),
+                      fillColor: Theme.of(
+                        context,
+                      ).inputDecorationTheme.fillColor,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   // Price Range
-                  Text('Price Range', style: AppTypography.h6),
+                  Text(
+                    'Price Range',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   RangeSlider(
                     values: _priceRange,
                     min: 0,
                     max: 5000,
                     divisions: 50,
-                    activeColor: AppColors.primary,
+                    activeColor: Theme.of(context).colorScheme.primary,
                     labels: RangeLabels(
                       '\$${_priceRange.start.round()}',
                       '\$${_priceRange.end.round()}',
@@ -181,14 +179,17 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   Text(
                     '\$${_priceRange.start.round()} - \$${_priceRange.end.round()}',
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.primary,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   // Property Type
-                  Text('Property Type', style: AppTypography.h6),
+                  Text(
+                    'Property Type',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   Wrap(
                     spacing: AppSpacing.sm,
@@ -202,20 +203,26 @@ class _SearchScreenState extends State<SearchScreen> {
                             _selectedPropertyType = type;
                           });
                         },
-                        backgroundColor: AppColors.cardBackground,
-                        selectedColor: AppColors.primary,
-                        labelStyle: AppTypography.bodyMedium.copyWith(
-                          color: isSelected
-                              ? AppColors.textWhite
-                              : AppColors.textPrimary,
-                        ),
-                        checkmarkColor: AppColors.textWhite,
+                        backgroundColor: Theme.of(context).cardColor,
+                        selectedColor: Theme.of(context).colorScheme.primary,
+                        labelStyle: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium?.color,
+                            ),
+                        checkmarkColor: Theme.of(context).colorScheme.onPrimary,
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   // Bedrooms
-                  Text('Bedrooms', style: AppTypography.h6),
+                  Text(
+                    'Bedrooms',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: List.generate(5, (index) {
@@ -231,20 +238,26 @@ class _SearchScreenState extends State<SearchScreen> {
                               _bedrooms = value;
                             });
                           },
-                          backgroundColor: AppColors.cardBackground,
-                          selectedColor: AppColors.primary,
-                          labelStyle: AppTypography.bodyMedium.copyWith(
-                            color: isSelected
-                                ? AppColors.textWhite
-                                : AppColors.textPrimary,
-                          ),
+                          backgroundColor: Theme.of(context).cardColor,
+                          selectedColor: Theme.of(context).colorScheme.primary,
+                          labelStyle: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.onPrimary
+                                    : Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium?.color,
+                              ),
                         ),
                       );
                     }),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   // Bathrooms
-                  Text('Bathrooms', style: AppTypography.h6),
+                  Text(
+                    'Bathrooms',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: List.generate(5, (index) {
@@ -260,26 +273,34 @@ class _SearchScreenState extends State<SearchScreen> {
                               _bathrooms = value;
                             });
                           },
-                          backgroundColor: AppColors.cardBackground,
-                          selectedColor: AppColors.primary,
-                          labelStyle: AppTypography.bodyMedium.copyWith(
-                            color: isSelected
-                                ? AppColors.textWhite
-                                : AppColors.textPrimary,
-                          ),
+                          backgroundColor: Theme.of(context).cardColor,
+                          selectedColor: Theme.of(context).colorScheme.primary,
+                          labelStyle: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.onPrimary
+                                    : Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium?.color,
+                              ),
                         ),
                       );
                     }),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   // Sort By
-                  Text('Sort By', style: AppTypography.h6),
+                  Text(
+                    'Sort By',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   DropdownButtonFormField<String>(
                     initialValue: _sortBy,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: AppColors.cardBackground,
+                      fillColor: Theme.of(
+                        context,
+                      ).inputDecorationTheme.fillColor,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
                         borderSide: BorderSide.none,
@@ -288,7 +309,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     items: _sortOptions.map((option) {
                       return DropdownMenuItem(
                         value: option,
-                        child: Text(option),
+                        child: Text(
+                          option,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -300,11 +324,11 @@ class _SearchScreenState extends State<SearchScreen> {
                   const SizedBox(height: AppSpacing.lg),
                   // Search Results
                   if (_hasSearched) ...[
-                    Divider(color: AppColors.textHint.withOpacity(0.3)),
+                    Divider(color: Theme.of(context).dividerColor),
                     const SizedBox(height: AppSpacing.md),
                     Text(
                       'Search Results (${_searchResults.length})',
-                      style: AppTypography.h5,
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     if (_searchResults.isEmpty)
@@ -313,17 +337,20 @@ class _SearchScreenState extends State<SearchScreen> {
                           padding: const EdgeInsets.all(AppSpacing.xl),
                           child: Column(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.search_off,
                                 size: 64,
-                                color: AppColors.textHint,
+                                color: Theme.of(context).hintColor,
                               ),
                               const SizedBox(height: AppSpacing.md),
                               Text(
                                 'No properties found',
-                                style: AppTypography.h6.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall?.color,
+                                    ),
                               ),
                             ],
                           ),
@@ -357,7 +384,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.cardBackground,
+              color: Theme.of(context).cardColor,
               boxShadow: AppShadows.medium,
             ),
             child: Row(

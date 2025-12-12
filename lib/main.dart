@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'theme.dart';
 import 'screens/auth/login_screen.dart';
-
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
+import 'app/theme_controller.dart';
 
 void main() {
   runApp(const MaisonelApp());
@@ -14,7 +13,7 @@ class MaisonelApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
-      valueListenable: themeNotifier,
+      valueListenable: ThemeController.instance.themeNotifier,
       builder: (context, themeMode, _) {
         return MaterialApp(
           title: 'Maisonel',

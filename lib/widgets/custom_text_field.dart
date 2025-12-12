@@ -41,10 +41,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
       children: [
         Text(
           widget.label,
-          style: AppTypography.bodyMedium.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.sm),
         TextFormField(
@@ -57,19 +56,24 @@ class _CustomTextFieldState extends State<CustomTextField> {
           onTap: widget.onTap,
           decoration: InputDecoration(
             hintText: widget.hint ?? widget.label,
-            hintStyle: AppTypography.bodyMedium.copyWith(
-              color: AppColors.textHint,
+            hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).hintColor,
             ),
-            filled: true,
-            fillColor: AppColors.surfaceLight,
             prefixIcon: widget.prefixIcon != null
-                ? Icon(widget.prefixIcon, color: AppColors.textSecondary)
+                ? Icon(
+                    widget.prefixIcon,
+                    color:
+                        Theme.of(context).iconTheme.color?.withOpacity(0.7) ??
+                        Colors.grey,
+                  )
                 : null,
             suffixIcon: widget.type == TextFieldType.password
                 ? IconButton(
                     icon: Icon(
                       _obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: AppColors.textSecondary,
+                      color:
+                          Theme.of(context).iconTheme.color?.withOpacity(0.7) ??
+                          Colors.grey,
                     ),
                     onPressed: () {
                       setState(() {
@@ -78,30 +82,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     },
                   )
                 : null,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: const BorderSide(color: AppColors.error, width: 1),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: const BorderSide(color: AppColors.error, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.md,
-            ),
           ),
         ),
       ],

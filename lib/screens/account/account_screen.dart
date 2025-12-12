@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme.dart';
 import '../../models/user.dart';
 import '../auth/login_screen.dart';
-import '../../main.dart';
+import '../../app/theme_controller.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -17,7 +17,6 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
           // Profile Header
@@ -56,16 +55,17 @@ class _AccountScreenState extends State<AccountScreen> {
                       // Name
                       Text(
                         _currentUser.name,
-                        style: AppTypography.h5.copyWith(
-                          color: AppColors.textWhite,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              color: AppColors.textWhite,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       const SizedBox(height: 4),
                       // Email
                       Text(
                         _currentUser.email,
-                        style: AppTypography.bodyMedium.copyWith(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textWhite.withOpacity(0.9),
                         ),
                       ),
@@ -178,16 +178,14 @@ class _AccountScreenState extends State<AccountScreen> {
                       icon: Icons.dark_mode_outlined,
                       title: 'Dark Mode',
                       trailing: ValueListenableBuilder<ThemeMode>(
-                        valueListenable: themeNotifier,
+                        valueListenable: ThemeController.instance.themeNotifier,
                         builder: (context, mode, _) {
                           return Switch(
                             value: mode == ThemeMode.dark,
                             onChanged: (value) {
-                              themeNotifier.value = value
-                                  ? ThemeMode.dark
-                                  : ThemeMode.light;
+                              ThemeController.instance.toggleTheme();
                             },
-                            activeThumbColor: AppColors.primary,
+                            activeColor: AppColors.primary,
                           );
                         },
                       ),
@@ -252,8 +250,10 @@ class _AccountScreenState extends State<AccountScreen> {
                       icon: const Icon(Icons.logout),
                       label: const Text('Logout'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.error,
-                        side: const BorderSide(color: AppColors.error),
+                        foregroundColor: Theme.of(context).colorScheme.error,
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                         padding: const EdgeInsets.symmetric(
                           vertical: AppSpacing.md,
                         ),
@@ -278,9 +278,9 @@ class _AccountScreenState extends State<AccountScreen> {
       ),
       child: Text(
         title,
-        style: AppTypography.overline.copyWith(
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
           fontSize: 12,
-          color: AppColors.textSecondary,
+          color: Theme.of(context).textTheme.bodySmall?.color,
         ),
       ),
     );
@@ -289,7 +289,7 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget _buildSettingCard(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: AppShadows.small,
       ),
@@ -305,15 +305,15 @@ class _AccountScreenState extends State<AccountScreen> {
     VoidCallback? onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(title, style: AppTypography.bodyMedium),
+      leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+      title: Text(title, style: Theme.of(context).textTheme.bodyMedium),
       subtitle: subtitle != null
-          ? Text(subtitle, style: AppTypography.bodySmall)
+          ? Text(subtitle, style: Theme.of(context).textTheme.bodySmall)
           : null,
       trailing:
           trailing ??
           (onTap != null
-              ? const Icon(Icons.chevron_right, color: AppColors.textSecondary)
+              ? Icon(Icons.chevron_right, color: Theme.of(context).hintColor)
               : null),
       onTap: onTap,
     );
@@ -323,7 +323,7 @@ class _AccountScreenState extends State<AccountScreen> {
     return Divider(
       height: 1,
       indent: 56,
-      color: AppColors.textHint.withOpacity(0.2),
+      color: Theme.of(context).dividerColor,
     );
   }
 
@@ -357,18 +357,18 @@ class _AccountScreenState extends State<AccountScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Logout', style: AppTypography.h5),
+        title: Text('Logout', style: Theme.of(context).textTheme.headlineSmall),
         content: Text(
           'Are you sure you want to logout?',
-          style: AppTypography.bodyMedium,
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               'Cancel',
-              style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).textTheme.bodySmall?.color,
               ),
             ),
           ),
@@ -382,8 +382,8 @@ class _AccountScreenState extends State<AccountScreen> {
             },
             child: Text(
               'Logout',
-              style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.error,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.error,
                 fontWeight: FontWeight.bold,
               ),
             ),

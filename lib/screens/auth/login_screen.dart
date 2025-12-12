@@ -77,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: AppSpacing.lg),
                   Text(
                     'Maisonel',
-                    style: AppTypography.h2.copyWith(
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
                       color: AppColors.textWhite,
                       fontWeight: FontWeight.bold,
                     ),
@@ -85,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     'Find your perfect home',
-                    style: AppTypography.bodyLarge.copyWith(
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: AppColors.textWhite.withOpacity(0.9),
                     ),
                   ),
@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.lg),
                     decoration: BoxDecoration(
-                      color: AppColors.cardBackground,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(AppRadius.lg),
                       boxShadow: AppShadows.large,
                     ),
@@ -103,7 +103,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Welcome Back', style: AppTypography.h4),
+                          Text(
+                            'Welcome Back',
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
                           const SizedBox(height: AppSpacing.md),
                           // Email Field
                           CustomTextField(
@@ -157,13 +160,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                           _rememberMe = value ?? false;
                                         });
                                       },
-                                      activeColor: AppColors.primary,
+                                      activeColor: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                     ),
                                   ),
                                   const SizedBox(width: AppSpacing.sm),
                                   Text(
                                     'Remember me',
-                                    style: AppTypography.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
@@ -173,10 +180,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                                 child: Text(
                                   'Forgot Password?',
-                                  style: AppTypography.bodySmall.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                 ),
                               ),
                             ],
@@ -195,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               Text(
                                 "Don't have an account? ",
-                                style: AppTypography.bodyMedium,
+                                style: Theme.of(context).textTheme.bodyMedium,
                               ),
                               TextButton(
                                 onPressed: () {
@@ -208,10 +218,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                                 child: Text(
                                   'Sign Up',
-                                  style: AppTypography.bodyMedium.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                               ),
                             ],

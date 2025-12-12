@@ -51,8 +51,8 @@ class CustomButton extends StatelessWidget {
           child: ElevatedButton(
             onPressed: isLoading ? null : onPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.textWhite,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg,
                 vertical: AppSpacing.md,
@@ -61,7 +61,18 @@ class CustomButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
-            child: buttonChild,
+            child: isLoading
+                ? SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
+                  )
+                : buttonChild,
           ),
         );
 
@@ -71,8 +82,8 @@ class CustomButton extends StatelessWidget {
           child: ElevatedButton(
             onPressed: isLoading ? null : onPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: AppColors.textWhite,
+              backgroundColor: Theme.of(context).colorScheme.secondary,
+              foregroundColor: Theme.of(context).colorScheme.onSecondary,
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg,
                 vertical: AppSpacing.md,
@@ -81,7 +92,18 @@ class CustomButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
-            child: buttonChild,
+            child: isLoading
+                ? SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.onSecondary,
+                      ),
+                    ),
+                  )
+                : buttonChild,
           ),
         );
 
@@ -91,8 +113,11 @@ class CustomButton extends StatelessWidget {
           child: OutlinedButton(
             onPressed: isLoading ? null : onPressed,
             style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              side: const BorderSide(color: AppColors.primary, width: 2),
+              foregroundColor: Theme.of(context).colorScheme.primary,
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg,
                 vertical: AppSpacing.md,
@@ -101,7 +126,18 @@ class CustomButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
-            child: buttonChild,
+            child: isLoading
+                ? SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  )
+                : buttonChild,
           ),
         );
     }
