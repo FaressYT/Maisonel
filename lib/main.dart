@@ -12,7 +12,7 @@ class MaisonelApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Maisonel',
+      title: 'Maisonell',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: const LoginScreen(),
