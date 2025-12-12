@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme.dart';
 import '../../models/user.dart';
 import '../auth/login_screen.dart';
+import '../../main.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -176,16 +177,19 @@ class _AccountScreenState extends State<AccountScreen> {
                     _buildSettingTile(
                       icon: Icons.dark_mode_outlined,
                       title: 'Dark Mode',
-                      trailing: Switch(
-                        value: false,
-                        onChanged: (value) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Dark mode coming soon!'),
-                            ),
+                      trailing: ValueListenableBuilder<ThemeMode>(
+                        valueListenable: themeNotifier,
+                        builder: (context, mode, _) {
+                          return Switch(
+                            value: mode == ThemeMode.dark,
+                            onChanged: (value) {
+                              themeNotifier.value = value
+                                  ? ThemeMode.dark
+                                  : ThemeMode.light;
+                            },
+                            activeThumbColor: AppColors.primary,
                           );
                         },
-                        activeThumbColor: AppColors.primary,
                       ),
                       onTap: null,
                     ),

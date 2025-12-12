@@ -3,6 +3,7 @@ import '../../theme.dart';
 import '../../models/property.dart';
 import '../../models/user.dart';
 import '../../widgets/property_card.dart';
+import '../listings/property_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -175,7 +176,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: PropertyCard(
                                 property: _featuredProperties[index],
                                 onTap: () {
-                                  // TODO: Navigate to property details
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          PropertyDetailsScreen(
+                                            property:
+                                                _featuredProperties[index],
+                                          ),
+                                    ),
+                                  );
                                 },
                               ),
                             );
@@ -208,7 +218,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: PropertyCard(
                         property: _filteredProperties[index],
                         onTap: () {
-                          // TODO: Navigate to property details
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PropertyDetailsScreen(
+                                property: _filteredProperties[index],
+                              ),
+                            ),
+                          );
                         },
                       ),
                     );

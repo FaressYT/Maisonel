@@ -280,4 +280,115 @@ class AppTheme {
       ),
     );
   }
+
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColors.primary,
+        brightness: Brightness.dark,
+        primary: AppColors.primary,
+        secondary: AppColors.secondary,
+        surface: const Color(0xFF1E1E1E),
+        background: const Color(0xFF121212),
+        error: AppColors.error,
+      ),
+      scaffoldBackgroundColor: const Color(0xFF121212),
+
+      // Text theme
+      textTheme: TextTheme(
+        displayLarge: AppTypography.h1.copyWith(color: AppColors.textWhite),
+        displayMedium: AppTypography.h2.copyWith(color: AppColors.textWhite),
+        displaySmall: AppTypography.h3.copyWith(color: AppColors.textWhite),
+        headlineLarge: AppTypography.h4.copyWith(color: AppColors.textWhite),
+        headlineMedium: AppTypography.h5.copyWith(color: AppColors.textWhite),
+        headlineSmall: AppTypography.h6.copyWith(color: AppColors.textWhite),
+        bodyLarge: AppTypography.bodyLarge.copyWith(color: AppColors.textWhite),
+        bodyMedium: AppTypography.bodyMedium.copyWith(
+          color: AppColors.textWhite,
+        ),
+        bodySmall: AppTypography.bodySmall.copyWith(
+          color: AppColors.textSecondary,
+        ),
+        labelLarge: AppTypography.button,
+        labelMedium: AppTypography.caption,
+        labelSmall: AppTypography.overline,
+      ),
+
+      // AppBar theme
+      appBarTheme: AppBarTheme(
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: const Color(0xFF1E1E1E), // Dark surface
+        foregroundColor: AppColors.textWhite,
+        titleTextStyle: AppTypography.h5.copyWith(color: AppColors.textWhite),
+      ),
+
+      // Card theme
+      cardTheme: CardThemeData(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        color: const Color(0xFF1E1E1E),
+      ),
+
+      // Input decoration theme
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF2C2C2C),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.error, width: 1),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
+      ),
+
+      // Elevated button theme
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textWhite,
+          elevation: 2,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          textStyle: AppTypography.button,
+        ),
+      ),
+
+      // Bottom navigation bar theme
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: const Color(0xFF1E1E1E),
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textSecondary,
+        selectedLabelStyle: AppTypography.caption.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: AppTypography.caption,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+      ),
+    );
+  }
 }
