@@ -193,7 +193,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                       ),
                     );
                   },
-                  activeColor: Colors.green, // Fallback for success
+                  activeThumbColor: Colors.green, // Fallback for success
                 ),
               ],
             ),

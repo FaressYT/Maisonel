@@ -16,7 +16,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _rememberMe = false;
   bool _isLoading = false;
 
   @override
@@ -111,16 +110,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Email Field
                           CustomTextField(
                             label: 'Email',
-                            hint: 'Enter your email',
-                            type: TextFieldType.email,
+                            hint: 'Enter your phone number',
+                            type: TextFieldType.phone,
                             controller: _emailController,
-                            prefixIcon: Icons.email_outlined,
+                            prefixIcon: Icons.phone_outlined,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter your email';
+                                return 'Please enter your phone number';
                               }
-                              if (!value.contains('@')) {
-                                return 'Please enter a valid email';
+                              if (value.length < 9) {
+                                return 'Please enter a valid phone number';
                               }
                               return null;
                             },
@@ -147,49 +146,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Remember Me and Forgot Password
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: Checkbox(
-                                      value: _rememberMe,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _rememberMe = value ?? false;
-                                        });
-                                      },
-                                      activeColor: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: AppSpacing.sm),
-                                  Text(
-                                    'Remember me',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  // TODO: Implement forgot password
-                                },
-                                child: Text(
-                                  'Forgot Password?',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                ),
-                              ),
-                            ],
                           ),
                           const SizedBox(height: AppSpacing.lg),
                           // Login Button

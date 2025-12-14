@@ -185,7 +185,7 @@ class _AccountScreenState extends State<AccountScreen> {
                             onChanged: (value) {
                               ThemeController.instance.toggleTheme();
                             },
-                            activeColor: AppColors.primary,
+                            activeThumbColor: AppColors.primary,
                           );
                         },
                       ),
