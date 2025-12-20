@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme.dart';
 import '../../models/property.dart';
 import '../../widgets/property_card.dart';
+import 'add_edit_listing_screen.dart';
 
 class MyListingsScreen extends StatefulWidget {
   const MyListingsScreen({super.key});
@@ -30,12 +31,12 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             onPressed: () {
-              // TODO: Navigate to add listing screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Add new listing feature coming soon!'),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AddEditListingScreen(),
                 ),
-              );
+              ).then((_) => setState(() {}));
             },
           ),
         ],
@@ -61,12 +62,12 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // TODO: Navigate to add listing screen
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Add new listing feature coming soon!'),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddEditListingScreen(),
             ),
-          );
+          ).then((_) => setState(() {})); // Refresh status
         },
         backgroundColor: Theme.of(context).colorScheme.primary,
         icon: const Icon(Icons.add),
@@ -161,12 +162,13 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                 // Edit button
                 IconButton(
                   onPressed: () {
-                    // TODO: Navigate to edit listing
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Edit listing feature coming soon!'),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AddEditListingScreen(property: property),
                       ),
-                    );
+                    ).then((_) => setState(() {}));
                   },
                   icon: const Icon(Icons.edit_outlined),
                   color: Theme.of(context).colorScheme.primary,

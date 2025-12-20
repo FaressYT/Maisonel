@@ -109,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: AppSpacing.md),
                           // Email Field
                           CustomTextField(
-                            label: 'Email',
+                            label: 'Phone',
                             hint: 'Enter your phone number',
                             type: TextFieldType.phone,
                             controller: _emailController,

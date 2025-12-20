@@ -3,6 +3,11 @@ import '../../theme.dart';
 import '../../models/user.dart';
 import '../auth/login_screen.dart';
 import '../../app/theme_controller.dart';
+import 'edit_profile_screen.dart';
+import 'change_password_screen.dart';
+import 'payment_methods_screen.dart';
+import '../notifications/notifications_screen.dart';
+import '../listings/order_requests_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -66,7 +71,7 @@ class _AccountScreenState extends State<AccountScreen> {
                       Text(
                         _currentUser.email,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textWhite.withOpacity(0.9),
+                          color: AppColors.textWhite,
                         ),
                       ),
                       if (_currentUser.isVerified)
@@ -110,9 +115,10 @@ class _AccountScreenState extends State<AccountScreen> {
                       icon: Icons.person_outline,
                       title: 'Edit Profile',
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Edit profile feature coming soon!'),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const EditProfileScreen(),
                           ),
                         );
                       },
@@ -122,11 +128,10 @@ class _AccountScreenState extends State<AccountScreen> {
                       icon: Icons.lock_outline,
                       title: 'Change Password',
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Change password feature coming soon!',
-                            ),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ChangePasswordScreen(),
                           ),
                         );
                       },
@@ -136,11 +141,42 @@ class _AccountScreenState extends State<AccountScreen> {
                       icon: Icons.credit_card_outlined,
                       title: 'Payment Methods',
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Payment methods feature coming soon!',
-                            ),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PaymentMethodsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ]),
+                  const SizedBox(height: AppSpacing.lg),
+                  // Hosting Section
+                  _buildSectionHeader('Hosting'),
+                  _buildSettingCard([
+                    _buildSettingTile(
+                      icon: Icons.dashboard_outlined,
+                      title: 'Booking Requests',
+                      trailing: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Text(
+                          '1',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const OrderRequestsScreen(),
                           ),
                         );
                       },
@@ -158,17 +194,11 @@ class _AccountScreenState extends State<AccountScreen> {
                         onChanged: (value) {},
                         activeThumbColor: AppColors.primary,
                       ),
-                      onTap: null,
-                    ),
-                    _buildDivider(),
-                    _buildSettingTile(
-                      icon: Icons.language_outlined,
-                      title: 'Language',
-                      subtitle: 'English',
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Language selection coming soon!'),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const NotificationsScreen(),
                           ),
                         );
                       },
@@ -196,17 +226,6 @@ class _AccountScreenState extends State<AccountScreen> {
                   // Support Section
                   _buildSectionHeader('Support'),
                   _buildSettingCard([
-                    _buildSettingTile(
-                      icon: Icons.help_outline,
-                      title: 'Help Center',
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Help center coming soon!'),
-                          ),
-                        );
-                      },
-                    ),
                     _buildDivider(),
                     _buildSettingTile(
                       icon: Icons.privacy_tip_outlined,
@@ -226,7 +245,7 @@ class _AccountScreenState extends State<AccountScreen> {
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Terms of service coming soon!'),
+                            content: Text('Terms of Service coming soon!'),
                           ),
                         );
                       },
@@ -347,7 +366,7 @@ class _AccountScreenState extends State<AccountScreen> {
       children: [
         Text(
           'Find your perfect home with Maisonel - the premier home rental platform.',
-          style: AppTypography.bodyMedium,
+          style: AppTypography.bodyMedium.copyWith(color: AppColors.textWhite),
         ),
       ],
     );

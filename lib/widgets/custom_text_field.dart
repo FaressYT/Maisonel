@@ -13,6 +13,8 @@ class CustomTextField extends StatefulWidget {
   final bool readOnly;
   final int maxLines;
   final VoidCallback? onTap;
+  final TextInputType? keyboardType;
+  final bool? obscureText;
 
   const CustomTextField({
     super.key,
@@ -25,6 +27,8 @@ class CustomTextField extends StatefulWidget {
     this.readOnly = false,
     this.maxLines = 1,
     this.onTap,
+    this.keyboardType,
+    this.obscureText,
   });
 
   @override
@@ -48,8 +52,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
         const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: widget.controller,
-          obscureText: widget.type == TextFieldType.password && _obscureText,
-          keyboardType: _getKeyboardType(),
+          obscureText:
+              widget.obscureText ??
+              (widget.type == TextFieldType.password && _obscureText),
+          keyboardType: widget.keyboardType ?? _getKeyboardType(),
           validator: widget.validator,
           readOnly: widget.readOnly,
           maxLines: widget.type == TextFieldType.password ? 1 : widget.maxLines,

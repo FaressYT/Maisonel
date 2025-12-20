@@ -3,6 +3,9 @@ import '../../theme.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../main_screen.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -17,16 +20,52 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _birthdateController = TextEditingController();
+  File? _profileImage;
+  File? _idImage;
   bool _acceptTerms = false;
   bool _isLoading = false;
+
+  final ImagePicker _picker = ImagePicker();
+  DateTime? _selectedBirthdate;
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _birthdateController.dispose();
     super.dispose();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _selectedBirthdate) {
+      setState(() {
+        _selectedBirthdate = picked;
+        _birthdateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      });
+    }
+  }
+
+  Future<void> _pickImage(bool isProfile) async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        if (isProfile) {
+          _profileImage = File(image.path);
+        } else {
+          _idImage = File(image.path);
+        }
+      });
+    }
   }
 
   void _handleSignup() async {
@@ -41,6 +80,19 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     if (_formKey.currentState!.validate()) {
+      if (_profileImage == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a profile picture')),
+        );
+        return;
+      }
+      if (_idImage == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please upload your ID photo')),
+        );
+        return;
+      }
+
       setState(() {
         _isLoading = true;
       });
@@ -143,6 +195,57 @@ class _SignupScreenState extends State<SignupScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Profile Picture
+                                Center(
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        width: 100,
+                                        height: 100,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.grey[200],
+                                          image: _profileImage != null
+                                              ? DecorationImage(
+                                                  image: FileImage(
+                                                    _profileImage!,
+                                                  ),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : null,
+                                        ),
+                                        child: _profileImage == null
+                                            ? const Icon(
+                                                Icons.person,
+                                                size: 50,
+                                                color: Colors.grey,
+                                              )
+                                            : null,
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: GestureDetector(
+                                          onTap: () => _pickImage(true),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.primary,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.camera_alt,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.lg),
+
                                 // Full Name Field
                                 CustomTextField(
                                   label: 'Full Name',
@@ -157,19 +260,32 @@ class _SignupScreenState extends State<SignupScreen> {
                                   },
                                 ),
                                 const SizedBox(height: AppSpacing.md),
-                                // Email Field
+                                // Birthdate Field
                                 CustomTextField(
-                                  label: 'Email',
-                                  hint: 'Enter your email',
-                                  type: TextFieldType.email,
-                                  controller: _emailController,
-                                  prefixIcon: Icons.email_outlined,
+                                  label: 'Birthdate',
+                                  hint: 'Select your birthdate',
+                                  controller: _birthdateController,
+                                  prefixIcon: Icons.calendar_today,
+                                  readOnly: true,
+                                  onTap: () => _selectDate(context),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return 'Please enter your email';
+                                      return 'Please select your birthdate';
                                     }
-                                    if (!value.contains('@')) {
-                                      return 'Please enter a valid email';
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+                                // Email Field
+                                CustomTextField(
+                                  label: 'Phone Number',
+                                  hint: 'Enter your Phone Number',
+                                  type: TextFieldType.email,
+                                  controller: _emailController,
+                                  prefixIcon: Icons.phone_outlined,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter your phone';
                                     }
                                     return null;
                                   },
@@ -209,6 +325,60 @@ class _SignupScreenState extends State<SignupScreen> {
                                     }
                                     return null;
                                   },
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+                                // ID Photo Upload
+                                Text(
+                                  'ID Photo',
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                GestureDetector(
+                                  onTap: () => _pickImage(false),
+                                  child: Container(
+                                    height: 150,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[100],
+                                      borderRadius: BorderRadius.circular(
+                                        AppRadius.md,
+                                      ),
+                                      border: Border.all(
+                                        color: Colors.grey[300]!,
+                                      ),
+                                    ),
+                                    child: _idImage != null
+                                        ? ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              AppRadius.md,
+                                            ),
+                                            child: Image.file(
+                                              _idImage!,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          )
+                                        : Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              const Icon(
+                                                Icons.add_a_photo_outlined,
+                                                size: 40,
+                                                color: Colors.grey,
+                                              ),
+                                              const SizedBox(
+                                                height: AppSpacing.xs,
+                                              ),
+                                              Text(
+                                                'Tap to upload ID photo',
+                                                style: TextStyle(
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                  ),
                                 ),
                                 const SizedBox(height: AppSpacing.md),
                                 // Terms and Conditions
