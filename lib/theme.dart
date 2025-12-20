@@ -4,9 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 /// Global color constants for the Maisonel app
 class AppColors {
   // Primary colors
-  static const Color primary = Color(0xFF00897B); // Teal
-  static const Color primaryLight = Color(0xFF4EBAAA);
-  static const Color primaryDark = Color(0xFF005B4F);
+  static const Color primary = Color.fromARGB(220, 0, 175, 166); // Teal
+  static const Color primaryLight = Color.fromARGB(220, 0, 175, 165);
+  static const Color primaryDark = Color.fromARGB(220, 0, 175, 165);
 
   // Secondary colors
   static const Color secondary = Color(0xFFFF6F00); // Deep Orange
@@ -19,7 +19,7 @@ class AppColors {
   static const Color accentDark = Color(0xFF3F1DCB);
 
   // Background colors
-  static const Color background = Color(0xFFF5F5F5);
+  static const Color background = Color.fromARGB(255, 213, 222, 225);
   static const Color cardBackground = Color(0xFFFFFFFF);
   static const Color surfaceLight = Color(0xFFFAFAFA);
 
