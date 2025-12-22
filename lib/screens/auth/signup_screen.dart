@@ -3,9 +3,10 @@ import '../../theme.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../main_screen.dart';
-import 'dart:io';
+import '../../services/api_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'dart:typed_data';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -16,13 +17,16 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _birthdateController = TextEditingController();
-  File? _profileImage;
-  File? _idImage;
+  XFile? _profileImage;
+  XFile? _idImage;
+  Uint8List? _profileImageBytes;
+  Uint8List? _idImageBytes;
   bool _acceptTerms = false;
   bool _isLoading = false;
 
@@ -31,9 +35,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _birthdateController.dispose();
@@ -58,11 +62,14 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _pickImage(bool isProfile) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      final bytes = await image.readAsBytes();
       setState(() {
         if (isProfile) {
-          _profileImage = File(image.path);
+          _profileImage = image;
+          _profileImageBytes = bytes;
         } else {
-          _idImage = File(image.path);
+          _idImage = image;
+          _idImageBytes = bytes;
         }
       });
     }
@@ -97,18 +104,40 @@ class _SignupScreenState extends State<SignupScreen> {
         _isLoading = true;
       });
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        // Navigate to main screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+      try {
+        await ApiService.register(
+          firstName: _firstNameController.text,
+          lastName: _lastNameController.text,
+          phone: _phoneController.text,
+          password: _passwordController.text,
+          confirmPassword: _confirmPasswordController.text,
+          birthDate: _birthdateController.text,
+          photo: _profileImage,
+          idDocument: _idImage,
         );
+
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+
+          // Navigate to main screen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -205,10 +234,10 @@ class _SignupScreenState extends State<SignupScreen> {
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           color: Colors.grey[200],
-                                          image: _profileImage != null
+                                          image: _profileImageBytes != null
                                               ? DecorationImage(
-                                                  image: FileImage(
-                                                    _profileImage!,
+                                                  image: MemoryImage(
+                                                    _profileImageBytes!,
                                                   ),
                                                   fit: BoxFit.cover,
                                                 )
@@ -246,18 +275,39 @@ class _SignupScreenState extends State<SignupScreen> {
                                 ),
                                 const SizedBox(height: AppSpacing.lg),
 
-                                // Full Name Field
-                                CustomTextField(
-                                  label: 'Full Name',
-                                  hint: 'Enter your full name',
-                                  controller: _nameController,
-                                  prefixIcon: Icons.person_outline,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter your name';
-                                    }
-                                    return null;
-                                  },
+                                // Name Fields
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: CustomTextField(
+                                        label: 'First Name',
+                                        hint: 'First name',
+                                        controller: _firstNameController,
+                                        prefixIcon: Icons.person_outline,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Required';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.sm),
+                                    Expanded(
+                                      child: CustomTextField(
+                                        label: 'Last Name',
+                                        hint: 'Last name',
+                                        controller: _lastNameController,
+                                        prefixIcon: Icons.person_outline,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Required';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: AppSpacing.md),
                                 // Birthdate Field
@@ -280,8 +330,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                 CustomTextField(
                                   label: 'Phone Number',
                                   hint: 'Enter your Phone Number',
-                                  type: TextFieldType.email,
-                                  controller: _emailController,
+                                  type: TextFieldType.phone,
+                                  controller: _phoneController,
                                   prefixIcon: Icons.phone_outlined,
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
@@ -353,8 +403,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                             borderRadius: BorderRadius.circular(
                                               AppRadius.md,
                                             ),
-                                            child: Image.file(
-                                              _idImage!,
+                                            child: Image.memory(
+                                              _idImageBytes!,
                                               fit: BoxFit.cover,
                                             ),
                                           )

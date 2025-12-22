@@ -3,6 +3,7 @@ import '../../theme.dart';
 import '../../models/user.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../services/api_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -13,27 +14,32 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _emailController;
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
   late TextEditingController _phoneController;
   bool _isLoading = false;
 
-  // Mock user for initial data
-  final User _user = User.getMockUser();
+  final User? _user = ApiService.currentUser;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: _user.name);
-    _emailController = TextEditingController(text: _user.email);
-    // Assuming user model might have phone in future, for now mock
-    _phoneController = TextEditingController(text: '+1 234 567 8900');
+    // Split name or use empty if not available
+    List<String> nameParts = (_user?.name ?? '').split(' ');
+    String firstName = nameParts.first;
+    String lastName = nameParts.length > 1
+        ? nameParts.sublist(1).join(' ')
+        : '';
+
+    _firstNameController = TextEditingController(text: firstName);
+    _lastNameController = TextEditingController(text: lastName);
+    _phoneController = TextEditingController(text: _user?.phone ?? '');
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
@@ -44,7 +50,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _isLoading = true;
       });
 
-      // Simulate API call
+      // TODO: Link to update profile API when ready
       await Future.delayed(const Duration(seconds: 1));
 
       if (mounted) {
@@ -75,10 +81,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: _user.profilePhoto != null
-                        ? NetworkImage(_user.profilePhoto!)
+                    backgroundImage: _user?.profilePhoto != null
+                        ? NetworkImage(_user!.profilePhoto!)
                         : null,
-                    child: _user.profilePhoto == null
+                    child: _user?.profilePhoto == null
                         ? const Icon(Icons.person, size: 50)
                         : null,
                   ),
@@ -103,32 +109,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: AppSpacing.lg),
 
               // Form Fields
-              CustomTextField(
-                label: 'Full Name',
-                controller: _nameController,
-                prefixIcon: Icons.person_outline,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: AppSpacing.md),
-              CustomTextField(
-                label: 'Email',
-                controller: _emailController,
-                prefixIcon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomTextField(
+                      label: 'First Name',
+                      controller: _firstNameController,
+                      prefixIcon: Icons.person_outline,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Required';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: CustomTextField(
+                      label: 'Last Name',
+                      controller: _lastNameController,
+                      prefixIcon: Icons.person_outline,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Required';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: AppSpacing.md),
               CustomTextField(

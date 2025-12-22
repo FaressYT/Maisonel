@@ -15,14 +15,15 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  int _authRefreshTick = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const SearchScreen(),
-    const MyListingsScreen(),
-    const OrderHistoryScreen(),
-    const AccountScreen(),
-  ];
+  List<Widget> get _screens => [
+        const HomeScreen(),
+        const SearchScreen(),
+        const MyListingsScreen(),
+        const OrderHistoryScreen(),
+        AccountScreen(key: ValueKey(_authRefreshTick)),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +34,7 @@ class _MainScreenState extends State<MainScreen> {
         onTap: (index) {
           setState(() {
             _currentIndex = index;
+            _authRefreshTick++;
           });
         },
       ),

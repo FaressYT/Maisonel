@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../theme.dart';
 import '../../models/user.dart';
@@ -8,6 +10,7 @@ import 'change_password_screen.dart';
 import 'payment_methods_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../listings/order_requests_screen.dart';
+import '../../services/api_service.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -17,10 +20,33 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
-  final User _currentUser = User.getMockUser();
+  User? get _currentUser => ApiService.currentUser;
 
   @override
   Widget build(BuildContext context) {
+    // If not logged in, show simple text or redirect (though UI usually prevents this)
+    if (_currentUser == null) {
+      return const Scaffold(body: Center(child: Text('Please log in')));
+    }
+
+    final user = _currentUser!;
+    final profilePhoto = user.profilePhoto;
+    final hasProfilePhoto =
+        profilePhoto != null && profilePhoto.trim().isNotEmpty;
+    final isFilePhoto = hasProfilePhoto && profilePhoto!.startsWith('file://');
+    final canUseFilePhoto = isFilePhoto && !kIsWeb;
+    final ImageProvider? profileImage = hasProfilePhoto
+        ? (canUseFilePhoto
+            ? FileImage(File.fromUri(Uri.parse(profilePhoto!)))
+            : NetworkImage(profilePhoto))
+        : null;
+    final showPlaceholder = !hasProfilePhoto || (isFilePhoto && kIsWeb);
+    final displayName = user.name.trim().isEmpty ? 'User' : user.name;
+    final phone = user.phone;
+    final displayPhone = phone != null && phone.trim().isNotEmpty
+        ? phone
+        : 'No phone number';
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -48,10 +74,8 @@ class _AccountScreenState extends State<AccountScreen> {
                         ),
                         child: CircleAvatar(
                           radius: 50,
-                          backgroundImage: _currentUser.profilePhoto != null
-                              ? NetworkImage(_currentUser.profilePhoto!)
-                              : null,
-                          child: _currentUser.profilePhoto == null
+                          backgroundImage: profileImage,
+                          child: showPlaceholder
                               ? const Icon(Icons.person, size: 50)
                               : null,
                         ),
@@ -59,7 +83,7 @@ class _AccountScreenState extends State<AccountScreen> {
                       const SizedBox(height: AppSpacing.md),
                       // Name
                       Text(
-                        _currentUser.name,
+                        displayName,
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: AppColors.textWhite,
@@ -67,14 +91,14 @@ class _AccountScreenState extends State<AccountScreen> {
                             ),
                       ),
                       const SizedBox(height: 4),
-                      // Email
+                      // Phone instead of Email
                       Text(
-                        _currentUser.email,
+                        displayPhone,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textWhite,
                         ),
                       ),
-                      if (_currentUser.isVerified)
+                      if (user.isVerified)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: Row(
@@ -108,6 +132,33 @@ class _AccountScreenState extends State<AccountScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Personal Information Section
+                  _buildSectionHeader('Personal Information'),
+                  _buildSettingCard([
+                    _buildInfoTile(
+                      icon: Icons.person_outline,
+                      label: 'Name',
+                      value: displayName,
+                    ),
+                    _buildDivider(),
+                    _buildInfoTile(
+                      icon: Icons.phone_outlined,
+                      label: 'Phone',
+                      value: displayPhone == 'No phone number'
+                          ? 'Not provided'
+                          : displayPhone,
+                    ),
+                    _buildDivider(),
+                    _buildInfoTile(
+                      icon: Icons.calendar_today_outlined,
+                      label: 'Birth Date',
+                      value: user.birthDate != null
+                          ? "${user.birthDate!.day}/${user.birthDate!.month}/${user.birthDate!.year}"
+                          : 'Not provided',
+                    ),
+                  ]),
+                  const SizedBox(height: AppSpacing.lg),
+
                   // Account Section
                   _buildSectionHeader('Account'),
                   _buildSettingCard([
@@ -338,6 +389,23 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
+  Widget _buildInfoTile({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+      title: Text(label, style: Theme.of(context).textTheme.bodySmall),
+      subtitle: Text(
+        value,
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
   Widget _buildDivider() {
     return Divider(
       height: 1,
@@ -392,12 +460,15 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-                (route) => false,
-              );
+            onPressed: () async {
+              await ApiService.logout();
+              if (mounted) {
+                Navigator.of(context, rootNavigator: true).pop();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (route) => false,
+                );
+              }
             },
             child: Text(
               'Logout',

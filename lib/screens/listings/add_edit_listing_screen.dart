@@ -149,7 +149,7 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         DropdownButtonFormField<String>(
-                          value: _selectedType,
+                          initialValue: _selectedType,
                           decoration: InputDecoration(
                             hintText: 'Select Type',
                             hintStyle: Theme.of(context).textTheme.bodyMedium
@@ -210,7 +210,7 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                 height: 150,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor,
                   borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(
                     color: Theme.of(context).dividerColor,

@@ -5,6 +5,7 @@ class User {
   final String? phone;
   final String? profilePhoto;
   final DateTime joinedDate;
+  final DateTime? birthDate;
   final String bio;
   final bool isVerified;
 
@@ -15,6 +16,7 @@ class User {
     this.phone,
     this.profilePhoto,
     required this.joinedDate,
+    this.birthDate,
     this.bio = '',
     this.isVerified = false,
   });
@@ -32,5 +34,49 @@ class User {
       bio: 'Love traveling and exploring new places!',
       isVerified: true,
     );
+  }
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    String? name = _stringOrNull(json['name']) ??
+        _stringOrNull(json['full_name']) ??
+        _stringOrNull(json['fullName']);
+    if ((name == null || name.isEmpty) &&
+        (json['first_name'] != null || json['firstName'] != null)) {
+      final firstName =
+          _stringOrNull(json['first_name']) ?? _stringOrNull(json['firstName']);
+      final lastName =
+          _stringOrNull(json['last_name']) ?? _stringOrNull(json['lastName']);
+      name = '${firstName ?? ''} ${lastName ?? ''}'.trim();
+    }
+
+    return User(
+      id: json['id'].toString(),
+      name: name ?? '',
+      email: _stringOrNull(json['email']) ?? '',
+      phone: _stringOrNull(json['phone']) ??
+          _stringOrNull(json['phone_number']) ??
+          _stringOrNull(json['phoneNumber']) ??
+          _stringOrNull(json['mobile']),
+      profilePhoto:
+          _stringOrNull(json['photo']) ??
+          _stringOrNull(json['profile_photo_url']) ??
+          _stringOrNull(json['profilePhoto']) ??
+          _stringOrNull(json['photo_url']) ??
+          _stringOrNull(json['avatar']),
+      joinedDate: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
+      birthDate: json['birth_date'] != null
+          ? DateTime.parse(json['birth_date'])
+          : null,
+      bio: _stringOrNull(json['bio']) ?? '',
+      isVerified: json['is_verified'] == 1 || json['is_verified'] == true,
+    );
+  }
+
+  static String? _stringOrNull(dynamic value) {
+    if (value == null) return null;
+    final text = value.toString().trim();
+    return text.isEmpty ? null : text;
   }
 }

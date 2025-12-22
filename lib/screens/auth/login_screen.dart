@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
+import '../../services/api_service.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import 'signup_screen.dart';
@@ -14,13 +15,13 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -31,18 +32,42 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = true;
       });
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        // Navigate to main screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+      try {
+        final result = await ApiService.login(
+          _phoneController.text,
+          _passwordController.text,
         );
+
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+
+          if (result.message != null && result.message!.isNotEmpty) {
+            debugPrint('Login message: ${result.message}');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(result.message!)),
+            );
+          }
+
+          // Navigate to main screen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
+        }
+      } catch (e) {
+        debugPrint('Login UI error: $e');
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -112,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             label: 'Phone',
                             hint: 'Enter your phone number',
                             type: TextFieldType.phone,
-                            controller: _emailController,
+                            controller: _phoneController,
                             prefixIcon: Icons.phone_outlined,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
