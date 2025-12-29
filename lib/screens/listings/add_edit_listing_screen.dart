@@ -1,11 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p; // لاستخراج اسم الملف بشكل صحيح
 import '../../theme.dart';
 import '../../models/property.dart';
+import '../../services/api_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
 class AddEditListingScreen extends StatefulWidget {
-  final Property? property; // If null, we are adding new listing
+  final Property? property;
 
   const AddEditListingScreen({super.key, this.property});
 
@@ -15,14 +19,29 @@ class AddEditListingScreen extends StatefulWidget {
 
 class _AddEditListingScreenState extends State<AddEditListingScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  // التحكم بالحقول
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   late TextEditingController _priceController;
   late TextEditingController _locationController;
   late TextEditingController _bedroomsController;
   late TextEditingController _bathroomsController;
+
+  // الحقول المطلوبة للـ API (City & Size)
+  final TextEditingController _sizeController = TextEditingController(
+    text: "240",
+  );
+  final TextEditingController _cityController = TextEditingController(
+    text: "Aleppo",
+  );
+
   String _selectedType = 'Apartment';
   bool _isLoading = false;
+
+  // قائمة الصور والـ Picker
+  List<File> _selectedImages = [];
+  final ImagePicker _picker = ImagePicker();
 
   final List<String> _propertyTypes = [
     'Apartment',
@@ -65,34 +84,76 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
     _locationController.dispose();
     _bedroomsController.dispose();
     _bathroomsController.dispose();
+    _sizeController.dispose();
+    _cityController.dispose();
     super.dispose();
   }
 
+  // دالة اختيار الصور (تطلب الإذن وتفتح المعرض)
+  Future<void> _pickImages() async {
+    try {
+      final List<XFile> images = await _picker.pickMultiImage(
+        imageQuality: 80, // لتقليل الحجم لسرعة الرفع
+      );
+      if (images.isNotEmpty) {
+        setState(() {
+          _selectedImages.addAll(
+            images.map((image) => File(image.path)).toList(),
+          );
+        });
+      }
+    } catch (e) {
+      debugPrint("Error picking images: $e");
+      _showErrorSnackBar("فشل الوصول إلى المعرض، يرجى التحقق من الإذونات.");
+    }
+  }
+
+  // دالة الحفظ النهائية
   void _saveListing() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+      if (_selectedImages.isEmpty && widget.property == null) {
+        _showErrorSnackBar("يرجى اختيار صورة واحدة على الأقل للعقار.");
+        return;
+      }
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
+      setState(() => _isLoading = true);
+
+      // استدعاء الـ API الجديد storeApartment
+      final bool success = await ApiService.storeApartment(
+        city: _cityController.text,
+        size: _sizeController.text,
+        title: _titleController.text,
+        description: _descriptionController.text,
+        price: _priceController.text,
+        bedrooms: _bedroomsController.text,
+        bathrooms: _bathroomsController.text,
+        type: _selectedType.toLowerCase(),
+        location: _locationController.text,
+        images: _selectedImages,
+      );
 
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.property == null
-                  ? 'Listing published successfully!'
-                  : 'Listing updated successfully!',
-            ),
-          ),
-        );
-        Navigator.pop(context);
+        setState(() => _isLoading = false);
+        if (success) {
+          _showSuccessSnackBar("تم نشر العقار بنجاح!");
+          Navigator.pop(context, true);
+        } else {
+          _showErrorSnackBar("فشل في عملية الحفظ، يرجى المحاولة لاحقاً.");
+        }
       }
     }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
   }
 
   @override
@@ -138,38 +199,7 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Property Type',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        DropdownButtonFormField<String>(
-                          initialValue: _selectedType,
-                          decoration: InputDecoration(
-                            hintText: 'Select Type',
-                            hintStyle: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: Theme.of(context).hintColor),
-                          ),
-                          items: _propertyTypes.map((type) {
-                            return DropdownMenuItem(
-                              value: type,
-                              child: Text(type),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedType = value!;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                  Expanded(child: _buildTypeDropdown()),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
@@ -205,34 +235,15 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                 ],
               ),
               const SizedBox(height: AppSpacing.xl),
-              // Image Upload Placeholder
-              Container(
-                height: 150,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).dividerColor,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor,
-                    style: BorderStyle.solid,
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.add_photo_alternate_outlined,
-                      size: 48,
-                      color: Theme.of(context).hintColor,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Add Photos',
-                      style: TextStyle(color: Theme.of(context).hintColor),
-                    ),
-                  ],
-                ),
+
+              // قسم اختيار الصور مع العرض
+              Text(
+                'Property Photos',
+                style: Theme.of(context).textTheme.titleMedium,
               ),
+              const SizedBox(height: AppSpacing.sm),
+              _buildImageSelectorArea(),
+
               const SizedBox(height: AppSpacing.xl),
               CustomButton(
                 text: widget.property == null
@@ -245,6 +256,106 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTypeDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Property Type',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _selectedType,
+          items: _propertyTypes
+              .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+              .toList(),
+          onChanged: (value) => setState(() => _selectedType = value!),
+          decoration: const InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 10),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageSelectorArea() {
+    return Container(
+      height: 140,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Theme.of(context).dividerColor.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: _selectedImages.isEmpty
+          ? InkWell(
+              onTap: _pickImages,
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_a_photo_outlined,
+                    size: 40,
+                    color: Colors.grey,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Tap to add photos',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
+          : ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _selectedImages.length + 1,
+              itemBuilder: (context, index) {
+                if (index == _selectedImages.length) {
+                  return IconButton(
+                    icon: const Icon(Icons.add_circle_outline, size: 30),
+                    onPressed: _pickImages,
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          _selectedImages[index],
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        child: InkWell(
+                          onTap: () =>
+                              setState(() => _selectedImages.removeAt(index)),
+                          child: const CircleAvatar(
+                            radius: 12,
+                            backgroundColor: Colors.red,
+                            child: Icon(
+                              Icons.close,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -321,6 +322,75 @@ class ApiService {
       return Order.fromJson(data['data'] ?? data);
     } else {
       throw Exception('Failed to load order details: ${response.statusCode}');
+    }
+  }
+
+  static Future<bool> storeApartment({
+    required String city,
+    required String size,
+    required String title,
+    required String description,
+    required String price,
+    required String bedrooms,
+    required String bathrooms,
+    required String type,
+    required String location,
+    required List<File> images,
+  }) async {
+    try {
+      // استخدام baseUrl الديناميكي لضمان عمل التطبيق على المحاكي والحقيقي
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/filter'), // تم تعديله ليستخدم المتغير baseUrl
+      );
+
+      // إضافة الترويسات مع التوكن المخزن في الكلاس
+      request.headers.addAll({
+        'Accept': 'application/json',
+        'Content-Type': 'multipart/form-data',
+        if (_token != null) 'Authorization': 'Bearer $_token',
+      });
+
+      // إضافة الحقول النصية
+      request.fields.addAll({
+        'city': city,
+        'size': size,
+        'title': title,
+        'description': description,
+        'price': price,
+        'bedrooms': bedrooms,
+        'bathrooms': bathrooms,
+        'type': type,
+        'location': location,
+      });
+
+      // رفع الصور المختارة
+      for (var image in images) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'image_url[]',
+            image.path,
+            filename: image.path.split('/').last,
+          ),
+        );
+      }
+
+      // إرسال الطلب
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        debugPrint('Property created successfully');
+        return true;
+      } else {
+        debugPrint(
+          'Failed. Status: ${response.statusCode}, Body: ${response.body}',
+        );
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Error storing apartment: $e');
+      return false;
     }
   }
 }
