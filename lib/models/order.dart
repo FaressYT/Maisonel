@@ -1,3 +1,7 @@
+import 'dart:ui' show Color;
+
+import 'package:flutter/material.dart';
+
 import 'property.dart';
 
 enum OrderStatus { pending, confirmed, completed, cancelled }
@@ -23,6 +27,45 @@ class Order {
     required this.guests,
   });
 
+  // --- دوال الربط مع السيرفر (JSON Serialization) ---
+
+  factory Order.fromJson(Map<String, dynamic> json) {
+    return Order(
+      id: json['id'].toString(),
+      // تحويل العقار المندمج داخل طلب البحث
+      property: Property.fromJson(json['property']),
+      checkInDate: DateTime.parse(json['check_in_date']),
+      checkOutDate: DateTime.parse(json['check_out_date']),
+      totalCost: double.parse(json['total_cost'].toString()),
+      // تحويل الحالة من نص (String) إلى Enum
+      status: _statusFromString(json['status']),
+      bookingDate: DateTime.parse(json['booking_date']),
+      guests: int.parse(json['guests'].toString()),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'property_id': property.id, // نرسل المعرف فقط عند الحجز
+      'check_in_date': checkInDate.toIso8601String(),
+      'check_out_date': checkOutDate.toIso8601String(),
+      'total_cost': totalCost,
+      'status': status.name,
+      'guests': guests,
+    };
+  }
+
+  // دالة مساعدة لتحويل النص القادم من قاعدة البيانات إلى Enum
+  static OrderStatus _statusFromString(String status) {
+    return OrderStatus.values.firstWhere(
+      (e) => e.name == status.toLowerCase(),
+      orElse: () => OrderStatus.pending,
+    );
+  }
+
+  // --- الدوال المحسوبة (Getters) ---
+
   int get numberOfNights {
     return checkOutDate.difference(checkInDate).inDays;
   }
@@ -40,61 +83,17 @@ class Order {
     }
   }
 
-  // Mock data generator
-  static List<Order> getMockOrders() {
-    final properties = Property.getMockProperties();
-
-    return [
-      Order(
-        id: 'order1',
-        property: properties[0],
-        checkInDate: DateTime.now().add(const Duration(days: 30)),
-        checkOutDate: DateTime.now().add(const Duration(days: 37)),
-        totalCost: 10500,
-        status: OrderStatus.confirmed,
-        bookingDate: DateTime.now().subtract(const Duration(days: 5)),
-        guests: 2,
-      ),
-      Order(
-        id: 'order2',
-        property: properties[2],
-        checkInDate: DateTime.now().subtract(const Duration(days: 30)),
-        checkOutDate: DateTime.now().subtract(const Duration(days: 16)),
-        totalCost: 44800,
-        status: OrderStatus.completed,
-        bookingDate: DateTime.now().subtract(const Duration(days: 60)),
-        guests: 4,
-      ),
-      Order(
-        id: 'order3',
-        property: properties[1],
-        checkInDate: DateTime.now().add(const Duration(days: 60)),
-        checkOutDate: DateTime.now().add(const Duration(days: 67)),
-        totalCost: 5600,
-        status: OrderStatus.pending,
-        bookingDate: DateTime.now().subtract(const Duration(days: 1)),
-        guests: 1,
-      ),
-      Order(
-        id: 'order4',
-        property: properties[4],
-        checkInDate: DateTime.now().subtract(const Duration(days: 90)),
-        checkOutDate: DateTime.now().subtract(const Duration(days: 80)),
-        totalCost: 25000,
-        status: OrderStatus.completed,
-        bookingDate: DateTime.now().subtract(const Duration(days: 120)),
-        guests: 3,
-      ),
-      Order(
-        id: 'order5',
-        property: properties[3],
-        checkInDate: DateTime.now().add(const Duration(days: 15)),
-        checkOutDate: DateTime.now().add(const Duration(days: 18)),
-        totalCost: 5400,
-        status: OrderStatus.cancelled,
-        bookingDate: DateTime.now().subtract(const Duration(days: 10)),
-        guests: 2,
-      ),
-    ];
+  // دالة لجلب لون الحالة (مفيدة في واجهة المستخدم)
+  static Color getStatusColor(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return Colors.orange;
+      case OrderStatus.confirmed:
+        return Colors.blue;
+      case OrderStatus.completed:
+        return Colors.green;
+      case OrderStatus.cancelled:
+        return Colors.red;
+    }
   }
 }

@@ -45,9 +45,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (result.message != null && result.message!.isNotEmpty) {
             debugPrint('Login message: ${result.message}');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(result.message!)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(result.message!)));
           }
 
           // Navigate to main screen
@@ -143,6 +143,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your phone number';
                               }
+                              if (!value.startsWith('09')) {
+                                return 'Please enter a valid number start with 09';
+                              }
                               if (value.length < 9) {
                                 return 'Please enter a valid phone number';
                               }
@@ -163,6 +166,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               }
                               if (value.length < 6) {
                                 return 'Password must be at least 6 characters';
+                              }
+                              if (RegExp(r'[a-zA-Z]').allMatches(value).length <
+                                  2) {
+                                return 'the password must contains tow charset';
                               }
                               return null;
                             },

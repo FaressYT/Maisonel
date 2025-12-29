@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/services/api_service.dart';
 import '../../theme.dart';
 import '../../models/property.dart';
 import '../../models/user.dart';
@@ -12,9 +13,10 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+// ... الإضافات في بداية الكلاس
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Property> _allProperties = Property.getMockProperties();
-  final User _currentUser = User.getMockUser();
+  late Future<List<Property>> _propertiesFuture;
+  final User? _currentUser = ApiService.currentUser;
   String _selectedCategory = 'All';
 
   final List<String> _categories = [
@@ -25,17 +27,16 @@ class _HomeScreenState extends State<HomeScreen> {
     'Studio',
   ];
 
-  List<Property> get _filteredProperties {
-    if (_selectedCategory == 'All') {
-      return _allProperties;
-    }
-    return _allProperties
-        .where((property) => property.propertyType == _selectedCategory)
-        .toList();
+  @override
+  void initState() {
+    super.initState();
+    _propertiesFuture = ApiService.getAvailableApartments();
   }
 
-  List<Property> get _featuredProperties {
-    return _allProperties.where((property) => property.isFeatured).toList();
+  Future<void> _handleRefresh() async {
+    setState(() {
+      _propertiesFuture = ApiService.getAvailableApartments();
+    });
   }
 
   @override
@@ -43,212 +44,202 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: () async {
-            await Future.delayed(const Duration(seconds: 1));
-            setState(() {});
-          },
-          child: CustomScrollView(
-            slivers: [
-              // App Bar
-              SliverAppBar(
-                floating: true,
-                backgroundColor: AppColors.primary,
-                expandedHeight: 120,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                    ),
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.xl,
-                      AppSpacing.lg,
-                      AppSpacing.md,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Hello, ${_currentUser.name.split(' ').first} 👋',
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(color: AppColors.textWhite),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Find your dream home',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: AppColors.textWhite.withOpacity(0.9),
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              // Content
-              SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: AppSpacing.md),
-                    // Category Filters
-                    SizedBox(
-                      height: 50,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                        ),
-                        itemCount: _categories.length,
-                        itemBuilder: (context, index) {
-                          final category = _categories[index];
-                          final isSelected = category == _selectedCategory;
-                          return Padding(
-                            padding: const EdgeInsets.only(
-                              right: AppSpacing.sm,
-                            ),
-                            child: FilterChip(
-                              label: Text(category),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setState(() {
-                                  _selectedCategory = category;
-                                });
-                              },
-                              backgroundColor: Theme.of(
-                                context,
-                              ).cardTheme.color,
-                              selectedColor: AppColors.primary,
-                              labelStyle: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: isSelected
-                                        ? Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimary
-                                        : Theme.of(
-                                            context,
-                                          ).textTheme.bodyMedium?.color,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                  ),
-                              checkmarkColor: Theme.of(
-                                context,
-                              ).colorScheme.onPrimary,
-                            ),
-                          );
-                        },
+          onRefresh: _handleRefresh,
+          child: FutureBuilder<List<Property>>(
+            future: _propertiesFuture,
+            builder: (context, snapshot) {
+              // 1. حالة التحميل
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              // 2. حالة الخطأ
+              if (snapshot.hasError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Error: ${snapshot.error}'),
+                      ElevatedButton(
+                        onPressed: _handleRefresh,
+                        child: const Text('Retry'),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    // Featured Properties Section
-                    if (_featuredProperties.isNotEmpty) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
+                    ],
+                  ),
+                );
+              }
+
+              // 3. استلام البيانات بنجاح
+              final allProperties = snapshot.data ?? [];
+
+              // منطق التصفية (Filtering Logic) - تم نقله إلى هنا ليعمل على بيانات السيرفر
+              final List<Property> filteredProperties =
+                  _selectedCategory == 'All'
+                  ? allProperties
+                  : allProperties
+                        .where((p) => p.propertyType == _selectedCategory)
+                        .toList();
+
+              final List<Property> featuredProperties = allProperties
+                  .where((p) => p.isFeatured)
+                  .toList();
+
+              return CustomScrollView(
+                slivers: [
+                  // App Bar
+                  SliverAppBar(
+                    floating: true,
+                    backgroundColor: AppColors.primary,
+                    expandedHeight: 120,
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Container(
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg,
+                          AppSpacing.xl,
+                          AppSpacing.lg,
+                          AppSpacing.md,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Text(
-                              'Featured',
-                              style: Theme.of(context).textTheme.headlineMedium,
+                              'Hello, ${_currentUser?.name.split(' ').first ?? 'Guest'} 👋',
+                              style: Theme.of(context).textTheme.headlineMedium
+                                  ?.copyWith(color: AppColors.textWhite),
                             ),
-                            TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                'See All',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Find your dream home',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: AppColors.textWhite.withOpacity(0.9),
+                                  ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.sm),
-                      SizedBox(
-                        height: 320,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md,
-                          ),
-                          itemCount: _featuredProperties.length,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              width: 280,
-                              margin: const EdgeInsets.only(
-                                right: AppSpacing.md,
-                              ),
-                              child: PropertyCard(
-                                property: _featuredProperties[index],
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          PropertyDetailsScreen(
-                                            property:
-                                                _featuredProperties[index],
-                                          ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                    ],
-                    // Popular Properties Section
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                      ),
-                      child: Text(
-                        'Popular Properties',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
-                  ],
-                ),
-              ),
-              // Popular Properties Grid
-              SliverPadding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: PropertyCard(
-                        property: _filteredProperties[index],
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PropertyDetailsScreen(
-                                property: _filteredProperties[index],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  }, childCount: _filteredProperties.length),
-                ),
-              ),
-            ],
+                  ),
+
+                  // Content
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: AppSpacing.md),
+
+                        // Category Filters
+                        _buildCategoryList(),
+
+                        const SizedBox(height: AppSpacing.lg),
+
+                        // Featured Properties Section
+                        if (featuredProperties.isNotEmpty) ...[
+                          _buildSectionHeader('Featured'),
+                          const SizedBox(height: AppSpacing.sm),
+                          _buildHorizontalList(featuredProperties),
+                          const SizedBox(height: AppSpacing.lg),
+                        ],
+
+                        _buildSectionHeader('Popular Properties'),
+                        const SizedBox(height: AppSpacing.sm),
+                      ],
+                    ),
+                  ),
+
+                  // Popular Properties Grid (Vertical List)
+                  SliverPadding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: PropertyCard(
+                            property: filteredProperties[index],
+                            onTap: () =>
+                                _navigateToDetails(filteredProperties[index]),
+                          ),
+                        );
+                      }, childCount: filteredProperties.length),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
+      ),
+    );
+  }
+
+  // --- دوال مساعدة لتنظيف الكود (Helper Methods) ---
+
+  Widget _buildCategoryList() {
+    return SizedBox(
+      height: 50,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        itemCount: _categories.length,
+        itemBuilder: (context, index) {
+          final category = _categories[index];
+          final isSelected = category == _selectedCategory;
+          return Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: FilterChip(
+              label: Text(category),
+              selected: isSelected,
+              onSelected: (selected) =>
+                  setState(() => _selectedCategory = category),
+              selectedColor: AppColors.primary,
+              checkmarkColor: Colors.white,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : Colors.black,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildHorizontalList(List<Property> properties) {
+    return SizedBox(
+      height: 320,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        itemCount: properties.length,
+        itemBuilder: (context, index) {
+          return Container(
+            width: 280,
+            margin: const EdgeInsets.only(right: AppSpacing.md),
+            child: PropertyCard(
+              property: properties[index],
+              onTap: () => _navigateToDetails(properties[index]),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Text(title, style: Theme.of(context).textTheme.headlineMedium),
+    );
+  }
+
+  void _navigateToDetails(Property property) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PropertyDetailsScreen(property: property),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/services/api_service.dart';
 import '../../theme.dart';
 import '../../models/property.dart';
 import '../../widgets/property_card.dart';
@@ -23,6 +24,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   List<Property> _searchResults = [];
   bool _hasSearched = false;
+  bool _isLoading = false;
 
   final List<String> _propertyTypes = [
     'All',
@@ -47,56 +49,60 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  void _performSearch() {
+  // التابع المعدل للربط مع API الفلترة
+  Future<void> _performSearch() async {
     setState(() {
+      _isLoading = true;
       _hasSearched = true;
-      // Get all properties and filter
-      List<Property> results = Property.getMockProperties();
-
-      // Filter by price range
-      results = results
-          .where(
-            (p) => p.price >= _priceRange.start && p.price <= _priceRange.end,
-          )
-          .toList();
-
-      // Filter by property type
-      if (_selectedPropertyType != 'All') {
-        results = results
-            .where((p) => p.propertyType == _selectedPropertyType)
-            .toList();
-      }
-
-      // Filter by bedrooms
-      if (_bedrooms > 0) {
-        results = results.where((p) => p.bedrooms >= _bedrooms).toList();
-      }
-
-      // Filter by bathrooms
-      if (_bathrooms > 0) {
-        results = results.where((p) => p.bathrooms >= _bathrooms).toList();
-      }
-
-      // Sort results
-      switch (_sortBy) {
-        case 'Price: Low to High':
-          results.sort((a, b) => a.price.compareTo(b.price));
-          break;
-        case 'Price: High to Low':
-          results.sort((a, b) => b.price.compareTo(a.price));
-          break;
-        case 'Rating':
-          results.sort((a, b) => b.rating.compareTo(a.rating));
-          break;
-        case 'Featured':
-          results.sort(
-            (a, b) => (b.isFeatured ? 1 : 0).compareTo(a.isFeatured ? 1 : 0),
-          );
-          break;
-      }
-
-      _searchResults = results;
     });
+
+    try {
+      // استدعاء السيرفر للقيام بالبحث والفلترة
+      final results = await ApiService.filterProperties(
+        query: _searchController.text.isEmpty ? null : _searchController.text,
+        location: _locationController.text.isEmpty
+            ? null
+            : _locationController.text,
+        minPrice: _priceRange.start,
+        maxPrice: _priceRange.end,
+        propertyType: _selectedPropertyType == 'All'
+            ? null
+            : _selectedPropertyType,
+        bedrooms: _bedrooms == 0 ? null : _bedrooms,
+        bathrooms: _bathrooms == 0 ? null : _bathrooms,
+      );
+
+      // ترتيب النتائج القادمة من السيرفر محلياً بناءً على اختيار المستخدم
+      results.sort((a, b) {
+        switch (_sortBy) {
+          case 'Price: Low to High':
+            return a.price.compareTo(b.price);
+          case 'Price: High to Low':
+            return b.price.compareTo(a.price);
+          case 'Rating':
+            return (b.rating ?? 0.0).compareTo(a.rating ?? 0.0);
+          case 'Featured':
+            return (b.isFeatured ? 1 : 0).compareTo(a.isFeatured ? 1 : 0);
+          default:
+            return 0;
+        }
+      });
+
+      setState(() {
+        _searchResults = results;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Search Error: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 
   void _clearFilters() {
@@ -122,14 +128,13 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       body: Column(
         children: [
-          // Search Filters
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Search Bar
+                  // حقل البحث النصي
                   TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
@@ -142,7 +147,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  // Location
+                  // حقل الموقع
                   TextField(
                     controller: _locationController,
                     decoration: InputDecoration(
@@ -155,10 +160,11 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  // Price Range
+
+                  // شريط اختيار السعر
                   Text(
                     'Price Range',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   RangeSlider(
@@ -171,24 +177,21 @@ class _SearchScreenState extends State<SearchScreen> {
                       '\$${_priceRange.start.round()}',
                       '\$${_priceRange.end.round()}',
                     ),
-                    onChanged: (values) {
-                      setState(() {
-                        _priceRange = values;
-                      });
-                    },
+                    onChanged: (values) => setState(() => _priceRange = values),
                   ),
                   Text(
                     '\$${_priceRange.start.round()} - \$${_priceRange.end.round()}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  // Property Type
+
+                  // نوع العقار
                   Text(
                     'Property Type',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Wrap(
@@ -198,162 +201,84 @@ class _SearchScreenState extends State<SearchScreen> {
                       return FilterChip(
                         label: Text(type),
                         selected: isSelected,
-                        onSelected: (selected) {
-                          setState(() {
-                            _selectedPropertyType = type;
-                          });
-                        },
-                        backgroundColor: Theme.of(context).cardColor,
+                        onSelected: (selected) =>
+                            setState(() => _selectedPropertyType = type),
                         selectedColor: Theme.of(context).colorScheme.primary,
-                        labelStyle: Theme.of(context).textTheme.bodyMedium
-                            ?.copyWith(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.onPrimary
-                                  : Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium?.color,
-                            ),
-                        checkmarkColor: Theme.of(context).colorScheme.onPrimary,
+                        labelStyle: TextStyle(
+                          color: isSelected ? Colors.white : Colors.black,
+                        ),
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  // Bedrooms
+
+                  // عدد الغرف والحمامات
                   Text(
                     'Bedrooms',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: List.generate(5, (index) {
-                      final value = index;
-                      final isSelected = _bedrooms == value;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: AppSpacing.sm),
-                        child: ChoiceChip(
-                          label: Text(value == 0 ? 'Any' : '$value+'),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              _bedrooms = value;
-                            });
-                          },
-                          backgroundColor: Theme.of(context).cardColor,
-                          selectedColor: Theme.of(context).colorScheme.primary,
-                          labelStyle: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: isSelected
-                                    ? Theme.of(context).colorScheme.onPrimary
-                                    : Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium?.color,
-                              ),
-                        ),
-                      );
-                    }),
+                  _buildChoiceChips(
+                    5,
+                    _bedrooms,
+                    (val) => setState(() => _bedrooms = val),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  // Bathrooms
+                  const SizedBox(height: AppSpacing.md),
                   Text(
                     'Bathrooms',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: List.generate(5, (index) {
-                      final value = index;
-                      final isSelected = _bathrooms == value;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: AppSpacing.sm),
-                        child: ChoiceChip(
-                          label: Text(value == 0 ? 'Any' : '$value+'),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              _bathrooms = value;
-                            });
-                          },
-                          backgroundColor: Theme.of(context).cardColor,
-                          selectedColor: Theme.of(context).colorScheme.primary,
-                          labelStyle: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: isSelected
-                                    ? Theme.of(context).colorScheme.onPrimary
-                                    : Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium?.color,
-                              ),
-                        ),
-                      );
-                    }),
+                  _buildChoiceChips(
+                    5,
+                    _bathrooms,
+                    (val) => setState(() => _bathrooms = val),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  // Sort By
+
+                  // خيارات الترتيب
                   Text(
                     'Sort By',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   DropdownButtonFormField<String>(
-                    initialValue: _sortBy,
-                    decoration: InputDecoration(
+                    value: _sortBy,
+                    decoration: const InputDecoration(
                       filled: true,
-                      fillColor: Theme.of(
-                        context,
-                      ).inputDecorationTheme.fillColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide.none,
-                      ),
+                      border: OutlineInputBorder(),
                     ),
                     items: _sortOptions.map((option) {
                       return DropdownMenuItem(
                         value: option,
-                        child: Text(
-                          option,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
+                        child: Text(option),
                       );
                     }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _sortBy = value!;
-                      });
-                    },
+                    onChanged: (value) => setState(() => _sortBy = value!),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  // Search Results
+
+                  const SizedBox(height: AppSpacing.xl),
+
+                  // عرض نتائج البحث
                   if (_hasSearched) ...[
-                    Divider(color: Theme.of(context).dividerColor),
+                    const Divider(),
                     const SizedBox(height: AppSpacing.md),
                     Text(
-                      'Search Results (${_searchResults.length})',
+                      'Results Found: ${_searchResults.length}',
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    if (_searchResults.isEmpty)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppSpacing.xl),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.search_off,
-                                size: 64,
-                                color: Theme.of(context).hintColor,
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              Text(
-                                'No properties found',
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall?.color,
-                                    ),
-                              ),
-                            ],
-                          ),
+                    if (_isLoading)
+                      const Center(child: CircularProgressIndicator())
+                    else if (_searchResults.isEmpty)
+                      const Center(
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: Colors.grey,
+                            ),
+                            Text('No properties match your filters'),
+                          ],
                         ),
                       )
                     else
@@ -369,7 +294,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             child: PropertyCard(
                               property: _searchResults[index],
                               onTap: () {
-                                // TODO: Navigate to property details
+                                // الانتقال لصفحة التفاصيل
                               },
                             ),
                           );
@@ -380,12 +305,15 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
           ),
-          // Action Buttons
+
+          // أزرار التحكم السفلية (Footer)
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
-              boxShadow: AppShadows.medium,
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
+              ],
             ),
             child: Row(
               children: [
@@ -400,15 +328,42 @@ class _SearchScreenState extends State<SearchScreen> {
                 Expanded(
                   flex: 2,
                   child: CustomButton(
-                    text: 'Search',
-                    onPressed: _performSearch,
-                    icon: Icons.search,
+                    text: _isLoading ? 'Searching...' : 'Search',
+                    onPressed: _isLoading ? () {} : _performSearch,
+                    icon: _isLoading ? null : Icons.search,
                   ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ودجت مساعدة لاختيار الأعداد (غرف/حمامات)
+  Widget _buildChoiceChips(
+    int count,
+    int selectedValue,
+    Function(int) onSelected,
+  ) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(count, (index) {
+          return Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: ChoiceChip(
+              label: Text(index == 0 ? 'Any' : '$index+'),
+              selected: selectedValue == index,
+              onSelected: (bool selected) => onSelected(index),
+              selectedColor: Theme.of(context).colorScheme.primary,
+              labelStyle: TextStyle(
+                color: selectedValue == index ? Colors.white : Colors.black,
+              ),
+            ),
+          );
+        }),
       ),
     );
   }

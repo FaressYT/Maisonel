@@ -337,6 +337,13 @@ class _SignupScreenState extends State<SignupScreen> {
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter your phone';
                                     }
+                                    if (!value.startsWith('09')) {
+                                      return 'Please enter a valid number start with 09';
+                                    }
+                                    if (value.length < 9) {
+                                      return 'Please enter a valid number';
+                                    }
+
                                     return null;
                                   },
                                 ),
@@ -355,6 +362,12 @@ class _SignupScreenState extends State<SignupScreen> {
                                     if (value.length < 6) {
                                       return 'Password must be at least 6 characters';
                                     }
+                                    if (RegExp(
+                                          r'[a-zA-Z]',
+                                        ).allMatches(value).length <
+                                        2) {
+                                      return 'the password must contains tow charset';
+                                    }
                                     return null;
                                   },
                                 ),
@@ -369,6 +382,15 @@ class _SignupScreenState extends State<SignupScreen> {
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return 'Please confirm your password';
+                                    }
+                                    if (value.length < 6) {
+                                      return 'Password must be at least 6 characters';
+                                    }
+                                    if (RegExp(
+                                          r'[a-zA-Z]',
+                                        ).allMatches(value).length <
+                                        2) {
+                                      return 'the password must contains tow charset';
                                     }
                                     if (value != _passwordController.text) {
                                       return 'Passwords do not match';

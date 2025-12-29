@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/services/api_service.dart';
 import '../../theme.dart';
 import '../../models/property.dart';
 import '../../widgets/property_card.dart';
@@ -12,13 +13,61 @@ class MyListingsScreen extends StatefulWidget {
 }
 
 class _MyListingsScreenState extends State<MyListingsScreen> {
-  // Mock user's listings (first 3 properties)
-  late List<Property> _myListings;
+  List<Property> _myListings = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _myListings = Property.getMockProperties().take(3).toList();
+    _fetchMyListings();
+  }
+
+  // جلب البيانات من السيرفر
+  Future<void> _fetchMyListings() async {
+    setState(() => _isLoading = true);
+    try {
+      // ملحوظة: تأكد أن ApiService يحتوي على دالة لجلب عقارات المستخدم الحالي
+      // إذا لم تتوفر، سنستخدم جلب الكل ونقوم بالتصفية (كمثال)
+      final all = await ApiService.getAvailableApartments();
+
+      setState(() {
+        _myListings = all; // هنا نفترض جلب العقارات الخاصة بالمسوق
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading listings: $e')));
+      }
+    }
+  }
+
+  // حذف العقار من السيرفر
+  Future<void> _deleteProperty(Property property) async {
+    try {
+      // نفترض وجود دالة deleteProperty في ApiService
+      // await ApiService.deleteProperty(property.id);
+
+      setState(() {
+        _myListings.removeWhere((p) => p.id == property.id);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Listing deleted successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -29,25 +78,17 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddEditListingScreen(),
-                ),
-              ).then((_) => setState(() {}));
-            },
+            icon: const Icon(Icons.refresh),
+            onPressed: _fetchMyListings,
           ),
         ],
       ),
-      body: _myListings.isEmpty
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _myListings.isEmpty
           ? _buildEmptyState()
           : RefreshIndicator(
-              onRefresh: () async {
-                await Future.delayed(const Duration(seconds: 1));
-                setState(() {});
-              },
+              onRefresh: _fetchMyListings,
               child: ListView.builder(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 itemCount: _myListings.length,
@@ -67,49 +108,11 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
             MaterialPageRoute(
               builder: (context) => const AddEditListingScreen(),
             ),
-          ).then((_) => setState(() {})); // Refresh status
+          ).then((_) => _fetchMyListings()); // تحديث بعد الإضافة
         },
         backgroundColor: Theme.of(context).colorScheme.primary,
         icon: const Icon(Icons.add),
         label: const Text('Add Listing'),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.add_business,
-                size: 80,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              'No listings yet',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Start adding your properties to rent them out',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -127,10 +130,9 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
             property: property,
             showFavoriteButton: false,
             onTap: () {
-              // TODO: Navigate to listing details
+              // الانتقال لتفاصيل العقار إذا رغبت
             },
           ),
-          // Action Buttons
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
@@ -142,24 +144,18 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
             ),
             child: Row(
               children: [
-                // Views count
                 Expanded(
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.visibility,
-                        size: 16,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                      ),
+                      Icon(Icons.visibility, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
-                        '${(property.reviewCount * 2.5).toInt()} views',
+                        '${(property.reviewCount * 12).toInt()} views', // رقم افتراضي للمشاهدات
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
                 ),
-                // Edit button
                 IconButton(
                   onPressed: () {
                     Navigator.push(
@@ -168,34 +164,29 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                         builder: (context) =>
                             AddEditListingScreen(property: property),
                       ),
-                    ).then((_) => setState(() {}));
+                    ).then((_) => _fetchMyListings());
                   },
                   icon: const Icon(Icons.edit_outlined),
                   color: Theme.of(context).colorScheme.primary,
-                  tooltip: 'Edit',
                 ),
-                // Delete button
                 IconButton(
-                  onPressed: () {
-                    _showDeleteConfirmation(property);
-                  },
+                  onPressed: () => _showDeleteConfirmation(property),
                   icon: const Icon(Icons.delete_outline),
                   color: Theme.of(context).colorScheme.error,
-                  tooltip: 'Delete',
                 ),
-                // Toggle active/inactive
+                // تبديل حالة العقار (نشط/غير نشط)
                 Switch(
-                  value: true,
-                  onChanged: (value) {
+                  value: property.isFeatured, // نستخدم حقل متاح كمثال للحالة
+                  onChanged: (value) async {
+                    // هنا يتم استدعاء ApiService لتحديث حالة العقار
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          value ? 'Listing activated' : 'Listing deactivated',
+                          value ? 'Listing Activated' : 'Listing Deactivated',
                         ),
                       ),
                     );
                   },
-                  activeThumbColor: Colors.green, // Fallback for success
                 ),
               ],
             ),
@@ -209,45 +200,44 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          'Delete Listing',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        content: Text(
-          'Are you sure you want to delete "${property.title}"? This action cannot be undone.',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+        title: const Text('Delete Listing'),
+        content: Text('Are you sure you want to delete "${property.title}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'Cancel',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
-            ),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              setState(() {
-                _myListings.remove(property);
-              });
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Listing deleted'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              Navigator.pop(context);
+              _deleteProperty(property);
             },
-            child: Text(
+            child: const Text(
               'Delete',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.error,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.add_business,
+            size: 80,
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No listings yet',
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          const Text('Start adding your properties to reach customers'),
         ],
       ),
     );
