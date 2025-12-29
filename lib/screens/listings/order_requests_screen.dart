@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
 import '../../models/order.dart';
+import '../../services/api_service.dart';
 
 class OrderRequestsScreen extends StatefulWidget {
   const OrderRequestsScreen({super.key});
@@ -79,7 +80,12 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                                   AppRadius.sm,
                                 ),
                                 image: DecorationImage(
-                                  image: NetworkImage(order.property.images[0]),
+                                  image: NetworkImage(
+                                    ApiService.getImageUrl(
+                                          order.property.images[0],
+                                        ) ??
+                                        '',
+                                  ),
                                   fit: BoxFit.cover,
                                 ),
                               ),

@@ -29,6 +29,17 @@ class ApiService {
     return _iosBaseUrl;
   }
 
+  static String get storageUrl {
+    return baseUrl.replaceAll('/api', '/storage');
+  }
+
+  static String? getImageUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http') || path.startsWith('https')) return path;
+    if (path.startsWith('file://')) return path;
+    return '$storageUrl/$path';
+  }
+
   static Future<LoginResult> login(String phone, String password) async {
     try {
       final response = await http.post(
@@ -204,7 +215,7 @@ class ApiService {
     try {
       if (_token != null) {
         await http
-            .get(
+            .delete(
               Uri.parse('$baseUrl/logout'),
               headers: {
                 'Content-Type': 'application/json',

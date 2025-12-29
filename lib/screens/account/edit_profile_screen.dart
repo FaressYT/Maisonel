@@ -81,10 +81,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: _user?.profilePhoto != null
-                        ? NetworkImage(_user!.profilePhoto!)
+                    backgroundImage:
+                        ApiService.getImageUrl(_user?.profilePhoto) != null
+                        ? NetworkImage(
+                            ApiService.getImageUrl(_user!.profilePhoto!)!,
+                          )
                         : null,
-                    child: _user?.profilePhoto == null
+                    child: ApiService.getImageUrl(_user?.profilePhoto) == null
                         ? const Icon(Icons.person, size: 50)
                         : null,
                   ),
