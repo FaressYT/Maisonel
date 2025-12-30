@@ -208,43 +208,35 @@ class ApiService {
     }
   }
 
-  static Future<List<Property>> filterProperties({
-    String? query,
-    String? location,
-    double? minPrice,
-    double? maxPrice,
-    String? propertyType,
-    int? bedrooms,
-    int? bathrooms,
-  }) async {
+  static Future<List<Property>> getOwnedApartments() async {
     try {
-      final Uri url = Uri.parse('$baseUrl/filter').replace(
-        queryParameters: {
-          if (query != null && query.isNotEmpty) 'search': query,
-          if (location != null && location.isNotEmpty) 'location': location,
-          if (minPrice != null) 'min_price': minPrice.toString(),
-          if (maxPrice != null) 'max_price': maxPrice.toString(),
-          if (propertyType != null && propertyType != 'All')
-            'type': propertyType,
-          if (bedrooms != null && bedrooms > 0) 'bedrooms': bedrooms.toString(),
-          if (bathrooms != null && bathrooms > 0)
-            'bathrooms': bathrooms.toString(),
+      final response = await http.get(
+        Uri.parse('$baseUrl/ownedApartments'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (_token != null) 'Authorization': 'Bearer $_token',
         },
       );
-
-      final response = await http.get(
-        url,
-        headers: {'Accept': 'application/json'},
-      );
+      print(response.body);
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => Property.fromJson(json)).toList();
+        final dynamic data = jsonDecode(response.body);
+        Iterable list;
+        if (data is Map<String, dynamic>) {
+          list = data['data'] ?? [];
+        } else if (data is Iterable) {
+          list = data;
+        } else {
+          throw Exception('Unexpected response format');
+        }
+        return list.map((model) => Property.fromJson(model)).toList();
       } else {
-        throw Exception('Failed to filter properties');
+        throw Exception('Failed to load properties: ${response.statusCode}');
       }
     } catch (e) {
-      rethrow;
+      debugPrint('Error getting available apartments: $e');
+      throw Exception('Server communication error: $e');
     }
   }
 

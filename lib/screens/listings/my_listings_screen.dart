@@ -28,7 +28,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
     try {
       // ملحوظة: تأكد أن ApiService يحتوي على دالة لجلب عقارات المستخدم الحالي
       // إذا لم تتوفر، سنستخدم جلب الكل ونقوم بالتصفية (كمثال)
-      final all = await ApiService.getAvailableApartments();
+      final all = await ApiService.getOwnedApartments();
 
       setState(() {
         _myListings = all; // هنا نفترض جلب العقارات الخاصة بالمسوق
@@ -126,12 +126,61 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
       ),
       child: Column(
         children: [
-          PropertyCard(
-            property: property,
-            showFavoriteButton: false,
-            onTap: () {
-              // الانتقال لتفاصيل العقار إذا رغبت
-            },
+          Stack(
+            children: [
+              PropertyCard(
+                property: property,
+                showFavoriteButton: false,
+                onTap: () {
+                  // الانتقال لتفاصيل العقار إذا رغبت
+                },
+              ),
+              if (property.approvalStatus != 1)
+                Positioned(
+                  top: 12,
+                  left: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          (property.approvalStatus == -1
+                                  ? Colors.black
+                                  : Colors.red)
+                              .withOpacity(0.8),
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(20),
+                        bottomRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          property.approvalStatus == -1
+                              ? Icons.block
+                              : Icons.warning_amber_rounded,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          property.approvalStatus == -1
+                              ? 'Rejected'
+                              : 'Not Approved Yet',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
@@ -157,36 +206,50 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            AddEditListingScreen(property: property),
-                      ),
-                    ).then((_) => _fetchMyListings());
-                  },
+                  onPressed: property.approvalStatus == -1
+                      ? null
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  AddEditListingScreen(property: property),
+                            ),
+                          ).then((_) => _fetchMyListings());
+                        },
                   icon: const Icon(Icons.edit_outlined),
-                  color: Theme.of(context).colorScheme.primary,
+                  color: property.approvalStatus == -1
+                      ? Colors.grey
+                      : Theme.of(context).colorScheme.primary,
                 ),
                 IconButton(
-                  onPressed: () => _showDeleteConfirmation(property),
+                  onPressed: property.approvalStatus == -1
+                      ? null
+                      : () => _showDeleteConfirmation(property),
                   icon: const Icon(Icons.delete_outline),
-                  color: Theme.of(context).colorScheme.error,
+                  color: property.approvalStatus == -1
+                      ? Colors.grey
+                      : Theme.of(context).colorScheme.error,
                 ),
                 // تبديل حالة العقار (نشط/غير نشط)
                 Switch(
-                  value: property.isFeatured, // نستخدم حقل متاح كمثال للحالة
-                  onChanged: (value) async {
-                    // هنا يتم استدعاء ApiService لتحديث حالة العقار
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          value ? 'Listing Activated' : 'Listing Deactivated',
-                        ),
-                      ),
-                    );
-                  },
+                  value: property.approvalStatus == 1
+                      ? property.isFeatured
+                      : false,
+                  onChanged: property.approvalStatus == 1
+                      ? (value) async {
+                          // هنا يتم استدعاء ApiService لتحديث حالة العقار
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                value
+                                    ? 'Listing Activated'
+                                    : 'Listing Deactivated',
+                              ),
+                            ),
+                          );
+                        }
+                      : null,
                 ),
               ],
             ),

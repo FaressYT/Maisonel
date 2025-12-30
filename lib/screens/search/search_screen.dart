@@ -58,19 +58,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     try {
       // استدعاء السيرفر للقيام بالبحث والفلترة
-      final results = await ApiService.filterProperties(
-        query: _searchController.text.isEmpty ? null : _searchController.text,
-        location: _locationController.text.isEmpty
-            ? null
-            : _locationController.text,
-        minPrice: _priceRange.start,
-        maxPrice: _priceRange.end,
-        propertyType: _selectedPropertyType == 'All'
-            ? null
-            : _selectedPropertyType,
-        bedrooms: _bedrooms == 0 ? null : _bedrooms,
-        bathrooms: _bathrooms == 0 ? null : _bathrooms,
-      );
+      final results = await ApiService.getAvailableApartments();
 
       // ترتيب النتائج القادمة من السيرفر محلياً بناءً على اختيار المستخدم
       results.sort((a, b) {
@@ -80,7 +68,7 @@ class _SearchScreenState extends State<SearchScreen> {
           case 'Price: High to Low':
             return b.price.compareTo(a.price);
           case 'Rating':
-            return (b.rating ?? 0.0).compareTo(a.rating ?? 0.0);
+            return b.rating.compareTo(a.rating);
           case 'Featured':
             return (b.isFeatured ? 1 : 0).compareTo(a.isFeatured ? 1 : 0);
           default:
@@ -205,7 +193,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             setState(() => _selectedPropertyType = type),
                         selectedColor: Theme.of(context).colorScheme.primary,
                         labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black,
+                          color: isSelected ? Colors.white : null,
                         ),
                       );
                     }).toList(),
@@ -359,7 +347,7 @@ class _SearchScreenState extends State<SearchScreen> {
               onSelected: (bool selected) => onSelected(index),
               selectedColor: Theme.of(context).colorScheme.primary,
               labelStyle: TextStyle(
-                color: selectedValue == index ? Colors.white : Colors.black,
+                color: selectedValue == index ? Colors.white : null,
               ),
             ),
           );

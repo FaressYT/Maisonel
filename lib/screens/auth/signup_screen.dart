@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/screens/auth/login_screen.dart';
 import '../../theme.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
@@ -123,7 +124,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
           // Navigate to main screen
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const MainScreen()),
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         }
       } catch (e) {
