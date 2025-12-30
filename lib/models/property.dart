@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Property {
   final String id;
   final String title;
@@ -48,9 +50,7 @@ class Property {
       city: json['city'] ?? '',
       country: json['country'] ?? '',
       // معالجة الصور سواء كانت نصاً واحداً أو قائمة
-      images: json['images'] != null
-          ? List<String>.from(json['images'])
-          : (json['image'] != null ? [json['image']] : []),
+      images: _parseList(json['images'] ?? json['image']),
       bedrooms: json['bedrooms'] ?? 0,
       bathrooms: json['bathrooms'] ?? 0,
       area: (json['area'] ?? 0).toDouble(),
@@ -62,10 +62,30 @@ class Property {
       availableFrom: json['available_from'] != null
           ? DateTime.parse(json['available_from'])
           : DateTime.now(),
-      amenities: json['amenities'] != null
-          ? List<String>.from(json['amenities'])
-          : [],
+      amenities: _parseList(json['amenities']),
     );
+  }
+
+  static List<String> _parseList(dynamic value) {
+    if (value == null) return [];
+    if (value is List) {
+      return value.map((e) => e.toString()).toList();
+    }
+    if (value is String) {
+      // Check if it looks like a JSON array string
+      if (value.startsWith('[') && value.endsWith(']')) {
+        try {
+          final decoded = List.from(
+            jsonDecode(value),
+          ).map((e) => e.toString()).toList();
+          return decoded;
+        } catch (_) {
+          return [value];
+        }
+      }
+      return [value];
+    }
+    return [value.toString()];
   }
 
   // Mock data generator

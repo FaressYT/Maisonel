@@ -4,6 +4,7 @@ class User {
   final String email;
   final String? phone;
   final String? profilePhoto;
+  final String? idDocument;
   final DateTime joinedDate;
   final DateTime? birthDate;
   final String bio;
@@ -15,6 +16,7 @@ class User {
     required this.email,
     this.phone,
     this.profilePhoto,
+    this.idDocument,
     required this.joinedDate,
     this.birthDate,
     this.bio = '',
@@ -37,7 +39,8 @@ class User {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
-    String? name = _stringOrNull(json['name']) ??
+    String? name =
+        _stringOrNull(json['name']) ??
         _stringOrNull(json['full_name']) ??
         _stringOrNull(json['fullName']);
     if ((name == null || name.isEmpty) &&
@@ -53,7 +56,8 @@ class User {
       id: json['id'].toString(),
       name: name ?? '',
       email: _stringOrNull(json['email']) ?? '',
-      phone: _stringOrNull(json['phone']) ??
+      phone:
+          _stringOrNull(json['phone']) ??
           _stringOrNull(json['phone_number']) ??
           _stringOrNull(json['phoneNumber']) ??
           _stringOrNull(json['mobile']),
@@ -63,6 +67,9 @@ class User {
           _stringOrNull(json['profilePhoto']) ??
           _stringOrNull(json['photo_url']) ??
           _stringOrNull(json['avatar']),
+      idDocument:
+          _stringOrNull(json['id_document']) ??
+          _stringOrNull(json['idDocument']),
       joinedDate: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),

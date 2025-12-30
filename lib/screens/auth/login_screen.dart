@@ -167,10 +167,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               if (value.length < 6) {
                                 return 'Password must be at least 6 characters';
                               }
-                              if (RegExp(r'[a-zA-Z]').allMatches(value).length <
-                                  2) {
-                                return 'the password must contains tow charset';
-                              }
                               return null;
                             },
                           ),

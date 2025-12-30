@@ -149,7 +149,8 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                     color: Colors.grey[200],
                     child: order.property.images.isNotEmpty
                         ? Image.network(
-                            order.property.images[0],
+                            ApiService.getImageUrl(order.property.images[0]) ??
+                                '',
                             fit: BoxFit.cover,
                           )
                         : const Icon(Icons.home),

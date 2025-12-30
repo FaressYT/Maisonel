@@ -362,12 +362,6 @@ class _SignupScreenState extends State<SignupScreen> {
                                     if (value.length < 6) {
                                       return 'Password must be at least 6 characters';
                                     }
-                                    if (RegExp(
-                                          r'[a-zA-Z]',
-                                        ).allMatches(value).length <
-                                        2) {
-                                      return 'the password must contains tow charset';
-                                    }
                                     return null;
                                   },
                                 ),
@@ -385,15 +379,6 @@ class _SignupScreenState extends State<SignupScreen> {
                                     }
                                     if (value.length < 6) {
                                       return 'Password must be at least 6 characters';
-                                    }
-                                    if (RegExp(
-                                          r'[a-zA-Z]',
-                                        ).allMatches(value).length <
-                                        2) {
-                                      return 'the password must contains tow charset';
-                                    }
-                                    if (value != _passwordController.text) {
-                                      return 'Passwords do not match';
                                     }
                                     return null;
                                   },

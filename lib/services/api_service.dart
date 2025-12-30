@@ -29,7 +29,16 @@ class ApiService {
     return _iosBaseUrl;
   }
 
-  // --- 1. المصادقة (Authentication) ---
+  static String get storageUrl {
+    return baseUrl.replaceAll('/api', '/storage');
+  }
+
+  static String? getImageUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http') || path.startsWith('https')) return path;
+    if (path.startsWith('file://')) return path;
+    return '$storageUrl/$path';
+  }
 
   static Future<LoginResult> login(String phone, String password) async {
     try {
@@ -49,7 +58,6 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        // تخزين التوكن في المتغير الثابت لاستخدامه في الطلبات القادمة
         _token =
             (data['token'] ??
                 data['Token'] ??
@@ -57,7 +65,6 @@ class ApiService {
                 data['data']?['token']) ??
             _token;
 
-        // تحليل بيانات المستخدم
         User user;
         final userData =
             data['user'] ??
@@ -169,8 +176,6 @@ class ApiService {
     }
   }
 
-  // --- 2. إدارة العقارات (Properties) ---
-
   static Future<List<Property>> getAvailableApartments() async {
     try {
       final response = await http.get(
@@ -181,16 +186,25 @@ class ApiService {
           if (_token != null) 'Authorization': 'Bearer $_token',
         },
       );
+      print(response.body);
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
-        Iterable list = responseData['data'] ?? responseData;
+        final dynamic data = jsonDecode(response.body);
+        Iterable list;
+        if (data is Map<String, dynamic>) {
+          list = data['data'] ?? [];
+        } else if (data is Iterable) {
+          list = data;
+        } else {
+          throw Exception('Unexpected response format');
+        }
         return list.map((model) => Property.fromJson(model)).toList();
       } else {
-        throw Exception('Failed to load properties');
+        throw Exception('Failed to load properties: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Server communication error');
+      debugPrint('Error getting available apartments: $e');
+      throw Exception('Server communication error: $e');
     }
   }
 
