@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "D:/Data/College/maisonel_v02/windows"
+    "cmake.sourceDirectory": "D:/Data/College/maisonel_v02/windows",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
