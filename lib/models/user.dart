@@ -21,6 +21,30 @@ class User {
     this.isVerified = false,
   });
 
+  User copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? phone,
+    String? profilePhoto,
+    DateTime? joinedDate,
+    DateTime? birthDate,
+    String? bio,
+    bool? isVerified,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      profilePhoto: profilePhoto ?? this.profilePhoto,
+      joinedDate: joinedDate ?? this.joinedDate,
+      birthDate: birthDate ?? this.birthDate,
+      bio: bio ?? this.bio,
+      isVerified: isVerified ?? this.isVerified,
+    );
+  }
+
   // Mock current user
   static User getMockUser() {
     return User(
@@ -37,7 +61,8 @@ class User {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
-    String? name = _stringOrNull(json['name']) ??
+    String? name =
+        _stringOrNull(json['name']) ??
         _stringOrNull(json['full_name']) ??
         _stringOrNull(json['fullName']);
     if ((name == null || name.isEmpty) &&
@@ -53,7 +78,8 @@ class User {
       id: json['id'].toString(),
       name: name ?? '',
       email: _stringOrNull(json['email']) ?? '',
-      phone: _stringOrNull(json['phone']) ??
+      phone:
+          _stringOrNull(json['phone']) ??
           _stringOrNull(json['phone_number']) ??
           _stringOrNull(json['phoneNumber']) ??
           _stringOrNull(json['mobile']),

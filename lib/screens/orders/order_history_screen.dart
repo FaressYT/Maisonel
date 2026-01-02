@@ -39,7 +39,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     });
 
     try {
-      final orders = await ApiService.getOwnerOrders(); //
+      final orders = await ApiService.getMyBookings(); //
       setState(() {
         _allOrders = orders; //
         _isLoading = false;

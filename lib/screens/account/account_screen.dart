@@ -11,6 +11,8 @@ import 'payment_methods_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../listings/order_requests_screen.dart';
 import '../../services/api_service.dart';
+import '../../cubits/user_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -20,7 +22,7 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
-  User? get _currentUser => ApiService.currentUser;
+  User? get _currentUser => context.watch<UserCubit>().state;
 
   @override
   Widget build(BuildContext context) {
@@ -37,8 +39,8 @@ class _AccountScreenState extends State<AccountScreen> {
     final canUseFilePhoto = isFilePhoto && !kIsWeb;
     final ImageProvider? profileImage = hasProfilePhoto
         ? (canUseFilePhoto
-            ? FileImage(File.fromUri(Uri.parse(profilePhoto!)))
-            : NetworkImage(profilePhoto))
+              ? FileImage(File.fromUri(Uri.parse(profilePhoto!)))
+              : NetworkImage(profilePhoto))
         : null;
     final showPlaceholder = !hasProfilePhoto || (isFilePhoto && kIsWeb);
     final displayName = user.name.trim().isEmpty ? 'User' : user.name;

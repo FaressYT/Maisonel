@@ -4,6 +4,8 @@ import '../../models/user.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../services/api_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../cubits/user_cubit.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -54,6 +56,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await Future.delayed(const Duration(seconds: 1));
 
       if (mounted) {
+        // Update User State
+        final currentUser =
+            context.read<UserCubit>().state ?? ApiService.currentUser;
+        if (currentUser != null) {
+          final updatedUser = currentUser.copyWith(
+            name: '${_firstNameController.text} ${_lastNameController.text}'
+                .trim(),
+            phone: _phoneController.text,
+          );
+
+          // Update Cubit and ApiService
+          context.read<UserCubit>().updateUser(updatedUser);
+          ApiService.currentUser = updatedUser;
+        }
+
         setState(() {
           _isLoading = false;
         });

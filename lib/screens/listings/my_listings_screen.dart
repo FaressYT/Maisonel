@@ -4,6 +4,7 @@ import '../../theme.dart';
 import '../../models/property.dart';
 import '../../widgets/property_card.dart';
 import 'add_edit_listing_screen.dart';
+import 'property_details_screen.dart'; // تأكد من استيراد شاشة التفاصيل
 
 class MyListingsScreen extends StatefulWidget {
   const MyListingsScreen({super.key});
@@ -22,16 +23,13 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
     _fetchMyListings();
   }
 
-  // جلب البيانات من السيرفر
+  // جلب كافة العقارات الخاصة بالمستخدم
   Future<void> _fetchMyListings() async {
     setState(() => _isLoading = true);
     try {
-      // ملحوظة: تأكد أن ApiService يحتوي على دالة لجلب عقارات المستخدم الحالي
-      // إذا لم تتوفر، سنستخدم جلب الكل ونقوم بالتصفية (كمثال)
-      final all = await ApiService.getAvailableApartments();
-
+      final myData = await ApiService.getMyApartments();
       setState(() {
-        _myListings = all; // هنا نفترض جلب العقارات الخاصة بالمسوق
+        _myListings = myData;
         _isLoading = false;
       });
     } catch (e) {
@@ -44,30 +42,65 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
     }
   }
 
-  // حذف العقار من السيرفر
+  // جلب تفاصيل شقة واحدة عند الضغط عليها (التابع الجديد بالتوكن)
+  Future<void> _handleViewDetails(int apartmentId) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final property = await ApiService.getApartmentById(apartmentId);
+
+      if (mounted) Navigator.pop(context); // إغلاق مؤشر التحميل
+
+      if (property != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PropertyDetailsScreen(property: property),
+          ),
+        );
+      } else {
+        _showSnackBar(
+          'Could not fetch details. Please try again.',
+          isError: true,
+        );
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context);
+      _showSnackBar('Connection error', isError: true);
+    }
+  }
+
+  // حذف العقار نهائياً
   Future<void> _deleteProperty(Property property) async {
     try {
-      // نفترض وجود دالة deleteProperty في ApiService
-      // await ApiService.deleteProperty(property.id);
-
-      setState(() {
-        _myListings.removeWhere((p) => p.id == property.id);
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Listing deleted successfully'),
-          backgroundColor: Colors.green,
-        ),
+      final success = await ApiService.deleteApartment(
+        property.id.compareTo(property.id),
       );
+
+      if (success) {
+        setState(() {
+          _myListings.removeWhere((p) => p.id == property.id);
+        });
+        _showSnackBar('Listing deleted successfully');
+      } else {
+        throw Exception("Failed to delete from server");
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to delete: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar('Failed to delete: $e', isError: true);
     }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
   }
 
   @override
@@ -108,7 +141,9 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
             MaterialPageRoute(
               builder: (context) => const AddEditListingScreen(),
             ),
-          ).then((_) => _fetchMyListings()); // تحديث بعد الإضافة
+          ).then((value) {
+            if (value == true) _fetchMyListings();
+          });
         },
         backgroundColor: Theme.of(context).colorScheme.primary,
         icon: const Icon(Icons.add),
@@ -129,9 +164,8 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
           PropertyCard(
             property: property,
             showFavoriteButton: false,
-            onTap: () {
-              // الانتقال لتفاصيل العقار إذا رغبت
-            },
+            // التعديل: استدعاء جلب التفاصيل بالتوكن عند الضغط
+            onTap: () => _handleViewDetails(property.id.compareTo(property.id)),
           ),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
@@ -150,7 +184,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                       Icon(Icons.visibility, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
-                        '${(property.reviewCount * 12).toInt()} views', // رقم افتراضي للمشاهدات
+                        '${(property.reviewCount * 12).toInt()} views',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -164,7 +198,9 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                         builder: (context) =>
                             AddEditListingScreen(property: property),
                       ),
-                    ).then((_) => _fetchMyListings());
+                    ).then((value) {
+                      if (value == true) _fetchMyListings();
+                    });
                   },
                   icon: const Icon(Icons.edit_outlined),
                   color: Theme.of(context).colorScheme.primary,
@@ -174,18 +210,10 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                   icon: const Icon(Icons.delete_outline),
                   color: Theme.of(context).colorScheme.error,
                 ),
-                // تبديل حالة العقار (نشط/غير نشط)
                 Switch(
-                  value: property.isFeatured, // نستخدم حقل متاح كمثال للحالة
-                  onChanged: (value) async {
-                    // هنا يتم استدعاء ApiService لتحديث حالة العقار
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          value ? 'Listing Activated' : 'Listing Deactivated',
-                        ),
-                      ),
-                    );
+                  value: property.isFeatured,
+                  onChanged: (value) {
+                    // هنا يمكن إضافة تابع لتغيير حالة التميز بالسيرفر
                   },
                 ),
               ],
@@ -238,6 +266,11 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const Text('Start adding your properties to reach customers'),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _fetchMyListings,
+            child: const Text('Refresh'),
+          ),
         ],
       ),
     );

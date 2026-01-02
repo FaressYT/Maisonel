@@ -5,6 +5,8 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import 'signup_screen.dart';
 import '../main_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../cubits/user_cubit.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -48,6 +50,10 @@ class _LoginScreenState extends State<LoginScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(result.message!)));
+          }
+
+          if (mounted) {
+            context.read<UserCubit>().setUser(result.user);
           }
 
           // Navigate to main screen
