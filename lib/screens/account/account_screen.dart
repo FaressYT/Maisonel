@@ -32,15 +32,16 @@ class _AccountScreenState extends State<AccountScreen> {
     }
 
     final user = _currentUser!;
-    final profilePhoto = user.profilePhoto;
+    final profilePhotoUrl = ApiService.getImageUrl(user.profilePhoto);
     final hasProfilePhoto =
-        profilePhoto != null && profilePhoto.trim().isNotEmpty;
-    final isFilePhoto = hasProfilePhoto && profilePhoto!.startsWith('file://');
+        profilePhotoUrl != null && profilePhotoUrl.trim().isNotEmpty;
+    final isFilePhoto =
+        hasProfilePhoto && profilePhotoUrl.startsWith('file://');
     final canUseFilePhoto = isFilePhoto && !kIsWeb;
     final ImageProvider? profileImage = hasProfilePhoto
         ? (canUseFilePhoto
-              ? FileImage(File.fromUri(Uri.parse(profilePhoto!)))
-              : NetworkImage(profilePhoto))
+              ? FileImage(File.fromUri(Uri.parse(profilePhotoUrl)))
+              : NetworkImage(profilePhotoUrl))
         : null;
     final showPlaceholder = !hasProfilePhoto || (isFilePhoto && kIsWeb);
     final displayName = user.name.trim().isEmpty ? 'User' : user.name;
@@ -158,6 +159,17 @@ class _AccountScreenState extends State<AccountScreen> {
                           ? "${user.birthDate!.day}/${user.birthDate!.month}/${user.birthDate!.year}"
                           : 'Not provided',
                     ),
+                    if (user.idDocument != null) ...[
+                      _buildDivider(),
+                      _buildInfoTile(
+                        icon: Icons.badge_outlined,
+                        label: 'ID Document',
+                        value: 'View Document',
+                        onTap: () {
+                          _showIdDocument(context, user.idDocument!);
+                        },
+                      ),
+                    ],
                   ]),
                   const SizedBox(height: AppSpacing.lg),
 
@@ -395,15 +407,65 @@ class _AccountScreenState extends State<AccountScreen> {
     required IconData icon,
     required String label,
     required String value,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
       title: Text(label, style: Theme.of(context).textTheme.bodySmall),
       subtitle: Text(
         value,
-        style: Theme.of(
-          context,
-        ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: onTap != null ? AppColors.primary : null,
+        ),
+      ),
+      trailing: onTap != null ? const Icon(Icons.open_in_new, size: 18) : null,
+      onTap: onTap,
+    );
+  }
+
+  void _showIdDocument(BuildContext context, String idDocument) {
+    final url = ApiService.getImageUrl(idDocument);
+    if (url == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: const Text(
+                'ID Document',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            Expanded(
+              child: InteractiveViewer(
+                child: Image.network(
+                  url,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                  errorBuilder: (context, error, stackTrace) => const Center(
+                    child: Text(
+                      'Failed to load document',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

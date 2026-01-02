@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/property.dart';
 import '../../theme.dart';
 import 'booking_screen.dart';
+import '../../services/api_service.dart';
 
 class PropertyDetailsScreen extends StatelessWidget {
   final Property property;
@@ -27,7 +28,7 @@ class PropertyDetailsScreen extends StatelessWidget {
                 itemCount: property.images.length,
                 itemBuilder: (context, index) {
                   return Image.network(
-                    property.images[index],
+                    ApiService.getImageUrl(property.images[index]) ?? '',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(

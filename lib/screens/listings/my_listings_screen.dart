@@ -203,12 +203,18 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                     });
                   },
                   icon: const Icon(Icons.edit_outlined),
-                  color: Theme.of(context).colorScheme.primary,
+                  color: property.approvalStatus == -1
+                      ? Colors.grey
+                      : Theme.of(context).colorScheme.primary,
                 ),
                 IconButton(
-                  onPressed: () => _showDeleteConfirmation(property),
+                  onPressed: property.approvalStatus == -1
+                      ? null
+                      : () => _showDeleteConfirmation(property),
                   icon: const Icon(Icons.delete_outline),
-                  color: Theme.of(context).colorScheme.error,
+                  color: property.approvalStatus == -1
+                      ? Colors.grey
+                      : Theme.of(context).colorScheme.error,
                 ),
                 Switch(
                   value: property.isFeatured,

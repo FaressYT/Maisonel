@@ -84,46 +84,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   .where((p) => p.isFeatured)
                   .toList();
 
+              if (allProperties.isEmpty) {
+                return RefreshIndicator(
+                  onRefresh: _handleRefresh,
+                  child: CustomScrollView(
+                    slivers: [
+                      _buildAppBar(context),
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: _buildEmptyState(),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
               return CustomScrollView(
                 slivers: [
-                  // App Bar
-                  SliverAppBar(
-                    floating: true,
-                    backgroundColor: AppColors.primary,
-                    expandedHeight: 120,
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Container(
-                        decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
-                        ),
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.lg,
-                          AppSpacing.xl,
-                          AppSpacing.lg,
-                          AppSpacing.md,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              'Hello, ${_currentUser?.name.split(' ').first ?? 'Guest'} 👋',
-                              style: Theme.of(context).textTheme.headlineMedium
-                                  ?.copyWith(color: AppColors.textWhite),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Find your dream home',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: AppColors.textWhite.withOpacity(0.9),
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  _buildAppBar(context),
 
                   // Content
                   SliverToBoxAdapter(
@@ -197,9 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   setState(() => _selectedCategory = category),
               selectedColor: AppColors.primary,
               checkmarkColor: Colors.white,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : Colors.black,
-              ),
+              labelStyle: TextStyle(color: isSelected ? Colors.white : null),
             ),
           );
         },
@@ -240,6 +216,69 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => PropertyDetailsScreen(property: property),
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return SliverAppBar(
+      floating: true,
+      backgroundColor: AppColors.primary,
+      expandedHeight: 120,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: BoxDecoration(gradient: AppColors.primaryGradient),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.xl,
+            AppSpacing.lg,
+            AppSpacing.md,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(
+                'Hello, ${_currentUser?.name.split(' ').first ?? 'Guest'} 👋',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: AppColors.textWhite,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Find your dream home',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textWhite.withOpacity(0.9),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.bedroom_parent_outlined,
+            size: 80,
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No properties found',
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Check back later for new listings or refresh the page',
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

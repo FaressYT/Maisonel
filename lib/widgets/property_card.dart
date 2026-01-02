@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/property.dart';
 import '../theme.dart';
+import '../services/api_service.dart';
 
 class PropertyCard extends StatelessWidget {
   final Property property;
@@ -43,7 +44,7 @@ class PropertyCard extends StatelessWidget {
                     ).colorScheme.surfaceContainerHighest,
                     child: property.images.isNotEmpty
                         ? Image.network(
-                            property.images.first,
+                            ApiService.getImageUrl(property.images.first) ?? '',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
