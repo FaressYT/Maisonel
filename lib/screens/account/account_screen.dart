@@ -6,7 +6,6 @@ import '../../theme.dart';
 import '../../models/user.dart';
 import '../auth/login_screen.dart';
 import '../../app/theme_controller.dart';
-import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
 import 'payment_methods_screen.dart';
 import '../notifications/notifications_screen.dart';
@@ -201,7 +200,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const EditProfileScreen(),
+                            builder: (context) => const AccountScreen(),
                           ),
                         );
                       },

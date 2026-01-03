@@ -39,6 +39,7 @@ class MaisonelApp extends StatelessWidget {
             // TODO: whenever someone opens an apartment, add a view
             // TODO: add ammenities in the listing addition / editing
             // TODO: when someone orders a booking, it should have his name and number in the booking request.
+            // TODO: edit profile option back + froot
           );
         },
       ),
