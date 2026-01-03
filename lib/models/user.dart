@@ -86,4 +86,19 @@ class User {
     final text = value.toString().trim();
     return text.isEmpty ? null : text;
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'photo': profilePhoto,
+      'id_document': idDocument,
+      'created_at': joinedDate.toIso8601String(),
+      'birth_date': birthDate?.toIso8601String(),
+      'bio': bio,
+      'is_verified': isVerified,
+    };
+  }
 }

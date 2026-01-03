@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubits/user/user_cubit.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'home/home_screen.dart';
 import 'search/search_screen.dart';
@@ -17,13 +19,19 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   int _authRefreshTick = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    context.read<UserCubit>().loadUserData();
+  }
+
   List<Widget> get _screens => [
-        const HomeScreen(),
-        const SearchScreen(),
-        const MyListingsScreen(),
-        const OrderHistoryScreen(),
-        AccountScreen(key: ValueKey(_authRefreshTick)),
-      ];
+    const HomeScreen(),
+    const SearchScreen(),
+    const MyListingsScreen(),
+    const OrderHistoryScreen(),
+    AccountScreen(key: ValueKey(_authRefreshTick)),
+  ];
 
   @override
   Widget build(BuildContext context) {

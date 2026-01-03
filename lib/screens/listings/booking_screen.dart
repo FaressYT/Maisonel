@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/property.dart';
+import '../../cubits/order/order_cubit.dart';
 import '../../theme.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -143,14 +145,63 @@ class _BookingScreenState extends State<BookingScreen> {
                 onPressed:
                     (isMonthly && startMonth != null) ||
                         (!isMonthly && selectedDateRange != null)
-                    ? () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Booking request sent!'),
-                          ),
+                    ? () async {
+                        // Prepare booking data
+                        final checkIn = isMonthly
+                            ? startMonth!
+                            : selectedDateRange!.start;
+                        final checkOut = isMonthly
+                            ? DateTime(
+                                startMonth!.year,
+                                startMonth!.month + monthsDuration,
+                                startMonth!.day,
+                              )
+                            : selectedDateRange!.end;
+
+                        final pricePerNight = isMonthly
+                            ? (widget.property.price / 30)
+                            : (widget.property.price / 30);
+
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (c) =>
+                              const Center(child: CircularProgressIndicator()),
                         );
-                        // Navigate to success or home
-                        Navigator.popUntil(context, (route) => route.isFirst);
+
+                        await context.read<OrderCubit>().createOrder(
+                          apartmentId: widget.property.id,
+                          guestCount: 1, // Defaulting to 1
+                          checkInDate: checkIn,
+                          checkOutDate: checkOut,
+                          pricePerNight: pricePerNight,
+                          totalCost: totalPrice,
+                        );
+
+                        if (!context.mounted) return;
+                        Navigator.pop(context); // Pop loading
+
+                        final state = context.read<OrderCubit>().state;
+                        // Check for error state
+                        if (state is OrderError) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Booking failed: ${state.message}'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        } else {
+                          // Success (OrderLoaded or updated)
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Booking request sent successfully!',
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                          Navigator.popUntil(context, (route) => route.isFirst);
+                        }
                       }
                     : null,
                 child: const Text('Confirm Booking'),

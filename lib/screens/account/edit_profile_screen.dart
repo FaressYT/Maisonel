@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../theme.dart';
 import '../../models/user.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../services/api_service.dart';
+import '../../cubits/auth/auth_cubit.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -18,12 +20,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _lastNameController;
   late TextEditingController _phoneController;
   bool _isLoading = false;
-
-  final User? _user = ApiService.currentUser;
+  User? _user;
 
   @override
   void initState() {
     super.initState();
+    // Get user from Cubit
+    final state = context.read<AuthCubit>().state;
+    if (state is AuthAuthenticated) {
+      _user = User.fromJson(state.user);
+    } else {
+      _user = ApiService.currentUser; // Fallback if needed or null
+    }
+
     // Split name or use empty if not available
     List<String> nameParts = (_user?.name ?? '').split(' ');
     String firstName = nameParts.first;
@@ -50,7 +59,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _isLoading = true;
       });
 
-      // TODO: Link to update profile API when ready
+      // TODO: Link to update profile API when ready.
+      // Ideally call context.read<AuthCubit>().updateProfile(...)
       await Future.delayed(const Duration(seconds: 1));
 
       if (mounted) {

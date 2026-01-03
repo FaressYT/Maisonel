@@ -1,13 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/property.dart';
 import '../../theme.dart';
 import 'booking_screen.dart';
 import '../../services/api_service.dart';
+import '../../cubits/user/user_cubit.dart';
 
-class PropertyDetailsScreen extends StatelessWidget {
+class PropertyDetailsScreen extends StatefulWidget {
   final Property property;
 
   const PropertyDetailsScreen({super.key, required this.property});
+
+  @override
+  State<PropertyDetailsScreen> createState() => _PropertyDetailsScreenState();
+}
+
+class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
+  late bool _isFavorite;
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavorite = widget.property.isFavorite;
+
+    // Cross-reference with UserCubit to ensure accurate favorite status
+    final userState = context.read<UserCubit>().state;
+    if (userState is UserLoaded) {
+      final isActuallyFavorite = userState.favorites.any(
+        (p) => p.id == widget.property.id,
+      );
+      if (isActuallyFavorite) {
+        _isFavorite = true;
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(PropertyDetailsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.property.isFavorite != widget.property.isFavorite) {
+      _isFavorite = widget.property.isFavorite;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,17 +52,52 @@ class PropertyDetailsScreen extends StatelessWidget {
             expandedHeight: 300,
             pinned: true,
             actions: [
-              IconButton(
-                icon: const Icon(Icons.favorite_border),
-                onPressed: () {},
+              BlocBuilder<UserCubit, UserState>(
+                builder: (context, state) {
+                  bool isFavorited = _isFavorite;
+                  if (state is UserLoaded) {
+                    isFavorited = state.favorites.any(
+                      (p) => p.id == widget.property.id,
+                    );
+                  }
+
+                  return IconButton(
+                    icon: Icon(
+                      isFavorited ? Icons.favorite : Icons.favorite_border,
+                    ),
+                    color: isFavorited ? Colors.red : null,
+                    onPressed: () async {
+                      setState(() {
+                        _isFavorite = !isFavorited;
+                      });
+                      try {
+                        await ApiService.toggleFavorite(widget.property.id);
+                        if (mounted) {
+                          context.read<UserCubit>().loadUserData();
+                        }
+                      } catch (e) {
+                        setState(() {
+                          _isFavorite = isFavorited; // Revert
+                        });
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Failed to update favorite'),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  );
+                },
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: PageView.builder(
-                itemCount: property.images.length,
+                itemCount: widget.property.images.length,
                 itemBuilder: (context, index) {
                   return Image.network(
-                    ApiService.getImageUrl(property.images[index]) ?? '',
+                    ApiService.getImageUrl(widget.property.images[index]) ?? '',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
@@ -64,7 +133,7 @@ class PropertyDetailsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              property.title,
+                              widget.property.title,
                               style: Theme.of(context).textTheme.headlineMedium,
                             ),
                             const SizedBox(height: AppSpacing.xs),
@@ -77,7 +146,7 @@ class PropertyDetailsScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(width: AppSpacing.xs),
                                 Text(
-                                  '${property.location}, ${property.city}',
+                                  '${widget.property.location}, ${widget.property.city}',
                                   style: Theme.of(context).textTheme.bodyMedium
                                       ?.copyWith(
                                         color: Theme.of(
@@ -93,7 +162,7 @@ class PropertyDetailsScreen extends StatelessWidget {
                       Column(
                         children: [
                           Text(
-                            '\$${property.price.toInt()}',
+                            '\$${widget.property.price.toInt()}',
                             style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
@@ -115,17 +184,17 @@ class PropertyDetailsScreen extends StatelessWidget {
                       _buildFeatureChip(
                         context,
                         Icons.bed,
-                        '${property.bedrooms} Bed',
+                        '${widget.property.bedrooms} Bed',
                       ),
                       _buildFeatureChip(
                         context,
                         Icons.bathroom,
-                        '${property.bathrooms} Bath',
+                        '${widget.property.bathrooms} Bath',
                       ),
                       _buildFeatureChip(
                         context,
                         Icons.square_foot,
-                        '${property.area} m²',
+                        '${widget.property.area} m²',
                       ),
                     ],
                   ),
@@ -138,7 +207,7 @@ class PropertyDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    property.description,
+                    widget.property.description,
                     style: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(height: 1.5),
@@ -154,7 +223,7 @@ class PropertyDetailsScreen extends StatelessWidget {
                   Wrap(
                     spacing: AppSpacing.sm,
                     runSpacing: AppSpacing.sm,
-                    children: property.amenities.map((amenity) {
+                    children: widget.property.amenities.map((amenity) {
                       return Chip(
                         label: Text(amenity),
                         backgroundColor: Theme.of(
@@ -189,7 +258,8 @@ class PropertyDetailsScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => BookingScreen(property: property),
+                  builder: (context) =>
+                      BookingScreen(property: widget.property),
                 ),
               );
             },

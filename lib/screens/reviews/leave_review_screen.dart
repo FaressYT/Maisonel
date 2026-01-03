@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
 import '../../models/property.dart';
+import '../../services/api_service.dart';
 import '../../widgets/custom_button.dart';
 
 class LeaveReviewScreen extends StatefulWidget {
   final Property property;
+  final String orderId;
 
-  const LeaveReviewScreen({super.key, required this.property});
+  const LeaveReviewScreen({
+    super.key,
+    required this.property,
+    required this.orderId,
+  });
 
   @override
   State<LeaveReviewScreen> createState() => _LeaveReviewScreenState();
@@ -29,17 +35,35 @@ class _LeaveReviewScreenState extends State<LeaveReviewScreen> {
       _isLoading = true;
     });
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
+    setState(() {
+      _isLoading = true;
+    });
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Review submitted successfully!')),
+    try {
+      await ApiService.storeRating(
+        widget.orderId,
+        _rating.toInt(),
+        _commentController.text,
       );
-      Navigator.pop(context);
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Review submitted successfully!')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to submit review: $e')));
+      }
     }
   }
 

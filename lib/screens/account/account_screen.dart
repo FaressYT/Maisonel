@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../theme.dart';
 import '../../models/user.dart';
 import '../auth/login_screen.dart';
@@ -10,7 +11,9 @@ import 'change_password_screen.dart';
 import 'payment_methods_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../listings/order_requests_screen.dart';
+import 'favorites_screen.dart';
 import '../../services/api_service.dart';
+import '../../cubits/auth/auth_cubit.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -20,16 +23,33 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
-  User? get _currentUser => ApiService.currentUser;
-
   @override
   Widget build(BuildContext context) {
-    // If not logged in, show simple text or redirect (though UI usually prevents this)
-    if (_currentUser == null) {
-      return const Scaffold(body: Center(child: Text('Please log in')));
-    }
+    return BlocConsumer<AuthCubit, AuthState>(
+      listener: (context, state) {
+        if (state is AuthUnauthenticated) {
+          Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (route) => false,
+          );
+        }
+      },
+      builder: (context, state) {
+        if (state is AuthAuthenticated) {
+          final user = User.fromJson(state.user);
+          return _buildProfileContent(context, user);
+        } else if (state is AuthLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
 
-    final user = _currentUser!;
+        return const Scaffold(body: Center(child: Text('Please log in')));
+      },
+    );
+  }
+
+  Widget _buildProfileContent(BuildContext context, User user) {
     final profilePhotoUrl = ApiService.getImageUrl(user.profilePhoto);
     final hasProfilePhoto =
         profilePhotoUrl != null && profilePhotoUrl.trim().isNotEmpty;
@@ -188,6 +208,19 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                     _buildDivider(),
                     _buildSettingTile(
+                      icon: Icons.favorite_border,
+                      title: 'My Favorites',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const FavoritesScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildDivider(),
+                    _buildSettingTile(
                       icon: Icons.lock_outline,
                       title: 'Change Password',
                       onTap: () {
@@ -328,7 +361,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: _handleLogout,
+                      onPressed: () => _handleLogout(context),
                       icon: const Icon(Icons.logout),
                       label: const Text('Logout'),
                       style: OutlinedButton.styleFrom(
@@ -502,10 +535,10 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  void _handleLogout() {
+  void _handleLogout(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (c) => AlertDialog(
         title: Text('Logout', style: Theme.of(context).textTheme.headlineSmall),
         content: Text(
           'Are you sure you want to logout?',
@@ -513,7 +546,7 @@ class _AccountScreenState extends State<AccountScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(c).pop(),
             child: Text(
               'Cancel',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -522,15 +555,9 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
           ),
           TextButton(
-            onPressed: () async {
-              await ApiService.logout();
-              if (mounted) {
-                Navigator.of(context, rootNavigator: true).pop();
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                  (route) => false,
-                );
-              }
+            onPressed: () {
+              Navigator.of(c).pop(); // pop dialog
+              context.read<AuthCubit>().logout();
             },
             child: Text(
               'Logout',

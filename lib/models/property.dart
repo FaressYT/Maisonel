@@ -16,7 +16,9 @@ class Property {
   final double rating;
   final int reviewCount;
   final bool isFeatured;
+  final bool isActive;
   final int approvalStatus; // 0: Pending, 1: Approved, -1: Rejected
+  final bool isFavorite;
   final String ownerId;
   final DateTime availableFrom;
   final List<String> amenities;
@@ -37,7 +39,9 @@ class Property {
     required this.rating,
     required this.reviewCount,
     this.isFeatured = false,
+    this.isActive = true,
     this.approvalStatus = 0,
+    this.isFavorite = false,
     required this.ownerId,
     required this.availableFrom,
     required this.amenities,
@@ -52,15 +56,17 @@ class Property {
       city: json['city'] ?? '',
       country: json['country'] ?? '',
       // معالجة الصور سواء كانت نصاً واحداً أو قائمة
-      images: _parseList(json['images'] ?? json['image']),
+      images: _parseList(json['image_url'] ?? json['images'] ?? json['image']),
       bedrooms: json['bedrooms'] ?? 0,
       bathrooms: json['bathrooms'] ?? 0,
-      area: (json['area'] ?? 0).toDouble(),
+      area: (json['size'] ?? 0).toDouble(),
       propertyType: json['property_type'] ?? 'Apartment',
       rating: (json['rating'] ?? 0.0).toDouble(),
       reviewCount: json['review_count'] ?? 0,
       isFeatured: json['is_featured'] == 1 || json['is_featured'] == true,
+      isActive: json['is_active'] == 1 || json['is_active'] == true,
       approvalStatus: int.tryParse(json['is_approved']?.toString() ?? '0') ?? 0,
+      isFavorite: json['is_favorite'] == true || json['is_favorite'] == 1,
       ownerId: json['owner_id']?.toString() ?? '',
       availableFrom: json['available_from'] != null
           ? DateTime.parse(json['available_from'])

@@ -21,6 +21,7 @@ class ApiService {
 
   // المتغيرات الثابتة لتخزين حالة الجلسة
   static String? _token;
+  static String? get token => _token;
   static User? currentUser;
 
   static String get baseUrl {
@@ -54,6 +55,7 @@ class ApiService {
         },
         body: jsonEncode({'phone': phone, 'password': password}),
       );
+      print(response.body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -138,6 +140,7 @@ class ApiService {
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
+      print(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
@@ -159,8 +162,8 @@ class ApiService {
   static Future<void> logout() async {
     try {
       if (_token != null) {
-        await http
-            .get(
+        final response = await http
+            .delete(
               Uri.parse('$baseUrl/logout'),
               headers: {
                 'Content-Type': 'application/json',
@@ -169,6 +172,7 @@ class ApiService {
               },
             )
             .timeout(const Duration(seconds: 10));
+        print(response.body);
       }
     } finally {
       _token = null;
@@ -235,16 +239,223 @@ class ApiService {
         throw Exception('Failed to load properties: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Error getting available apartments: $e');
+      debugPrint('Error getting owned apartments: $e');
       throw Exception('Server communication error: $e');
     }
   }
 
-  // --- 3. إدارة الطلبات للمالك (Owner Orders) ---
+  static Future<void> createApartment({
+    required String title,
+    required String description,
+    required double price,
+    required double size,
+    required String city,
+    required String location,
+    required int bedrooms,
+    required int bathrooms,
+    required String type,
+    required List<XFile> images,
+    List<String> amenities = const [],
+  }) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/apartment/create'),
+      );
+
+      request.headers.addAll({
+        'Accept': 'application/json',
+        if (_token != null) 'Authorization': 'Bearer $_token',
+      });
+
+      request.fields.addAll({
+        'title': title,
+        'description': description,
+        'price': price.toString(),
+        'size': size.toInt().toString(), // Convert to integer
+        'city': city,
+        'location': location,
+        'bedrooms': bedrooms.toString(),
+        'bathrooms': bathrooms.toString(),
+        'type': type,
+        'amenities': jsonEncode(amenities),
+      });
+
+      for (var image in images) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'images[]',
+            image.path,
+            filename: image.name,
+          ),
+        );
+      }
+
+      final response = await request.send();
+      final responseBody = await http.Response.fromStream(response);
+      print(responseBody.body);
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        final data = jsonDecode(responseBody.body);
+        throw Exception(data['message'] ?? 'Failed to create apartment');
+      }
+    } catch (e) {
+      throw Exception('Create apartment failed: $e');
+    }
+  }
+
+  static Future<void> updateApartment(
+    String id, {
+    String? title,
+    String? description,
+    double? price,
+    double? size,
+    String? location,
+    String? type,
+    int? bedrooms,
+    int? bathrooms,
+    String? city,
+    List<String>? amenities,
+    List<XFile>? images,
+  }) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/apartment/update/$id'),
+      );
+
+      request.headers.addAll({
+        'Accept': 'application/json',
+        if (_token != null) 'Authorization': 'Bearer $_token',
+      });
+
+      if (title != null) request.fields['title'] = title;
+      if (description != null) request.fields['description'] = description;
+      if (price != null) request.fields['price'] = price.toString();
+      if (size != null) request.fields['size'] = size.toInt().toString();
+      if (location != null) request.fields['location'] = location;
+      if (type != null) request.fields['type'] = type;
+      if (bedrooms != null) request.fields['bedrooms'] = bedrooms.toString();
+      if (bathrooms != null) request.fields['bathrooms'] = bathrooms.toString();
+      if (city != null) request.fields['city'] = city;
+      if (amenities != null)
+        request.fields['amenities'] = jsonEncode(amenities);
+
+      if (images != null && images.isNotEmpty) {
+        for (var image in images) {
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'images[]',
+              image.path,
+              filename: image.name,
+            ),
+          );
+        }
+      }
+
+      final response = await request.send();
+      final responseBody = await http.Response.fromStream(response);
+      print(responseBody.body);
+
+      if (response.statusCode != 200) {
+        final data = jsonDecode(responseBody.body);
+        throw Exception(data['message'] ?? 'Failed to update apartment');
+      }
+    } catch (e) {
+      throw Exception('Update apartment failed: $e');
+    }
+  }
+
+  static Future<void> deleteApartment(String id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/apartment/destroy/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (_token != null) 'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode != 200) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to delete apartment');
+      }
+    } catch (e) {
+      throw Exception('Delete apartment failed: $e');
+    }
+  }
+
+  static Future<void> toggleApartmentStatus(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/apartment/toggle-status/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (_token != null) 'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode != 200) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to toggle apartment status');
+      }
+    } catch (e) {
+      throw Exception('Toggle apartment status failed: $e');
+    }
+  }
+
+  static Future<Property> getApartmentDetails(String id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/apartment/show/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (_token != null) 'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final propertyData = data['data'] ?? data;
+        return Property.fromJson(propertyData);
+      } else {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to get apartment details');
+      }
+    } catch (e) {
+      throw Exception('Get apartment details failed: $e');
+    }
+  }
+
+  static Future<void> deleteApartmentImage(String id, int idx) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/apartment/images/$id/index/$idx'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (_token != null) 'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode != 200) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to delete image');
+      }
+    } catch (e) {
+      throw Exception('Delete image failed: $e');
+    }
+  }
 
   static Future<List<Order>> getOwnerOrders() async {
     try {
-      // التحقق من وجود توكن صالح قبل إرسال الطلب
       if (_token == null) {
         throw Exception('User is not authenticated. Please login again.');
       }
@@ -254,17 +465,14 @@ class ApiService {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization':
-              'Bearer $_token', // استخدام التوكن الحقيقي المخزن في الكلاس
+          'Authorization': 'Bearer $_token',
         },
       );
+      print(response.body);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
-
-        // جلب قائمة الطلبات من حقل 'data'
-        final List<dynamic> ordersJson = responseData['data'] ?? [];
-
+        final List<dynamic> ordersJson = responseData['orders'] ?? [];
         return ordersJson.map((json) => Order.fromJson(json)).toList();
       } else {
         throw Exception(
@@ -277,7 +485,44 @@ class ApiService {
     }
   }
 
-  // --- 4. تغيير كلمة المرور ---
+  static Future<void> approveOrder(String id) async {
+    await _postVoid('$baseUrl/order/owner/approve/$id');
+  }
+
+  static Future<void> rejectOrder(String id) async {
+    await _postVoid('$baseUrl/order/owner/reject/$id');
+  }
+
+  static Future<void> approveOrderUpdate(String id) async {
+    await _postVoid('$baseUrl/order/owner/approve_update/$id');
+  }
+
+  static Future<void> rejectOrderUpdate(String id) async {
+    await _postVoid('$baseUrl/order/owner/reject_update/$id');
+  }
+
+  static Future<void> _postVoid(String url) async {
+    try {
+      if (_token == null) throw Exception('Not authenticated');
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode != 200) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Operation failed');
+      }
+    } catch (e) {
+      throw Exception('Operation failed: $e');
+    }
+  }
 
   static Future<void> changePassword(
     String currentPassword,
@@ -300,6 +545,7 @@ class ApiService {
           'new_password_confirmation': confirmPassword,
         }),
       );
+      print(response.body);
 
       if (response.statusCode != 200) {
         final data = jsonDecode(response.body);
@@ -310,23 +556,379 @@ class ApiService {
     }
   }
 
-  // تابع لجلب تفاصيل طلب واحد محدد باستخدام معرف الطلب
-  static Future<Order> getOrderDetails(int orderId) async {
+  static Future<Order> getOrderDetails(String orderId) async {
     final response = await http.get(
       Uri.parse('$baseUrl/order/owner/show/$orderId'),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Authorization': 'Bearer $_token', // إرسال التوكن للتحقق من الهوية
+        'Authorization': 'Bearer $_token',
       },
     );
+    print(response.body);
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
-      // نفترض أن السيرفر يعيد الطلب داخل حقل يسمى 'data' أو يعيده مباشرة
       return Order.fromJson(data['data'] ?? data);
     } else {
       throw Exception('Failed to load order details: ${response.statusCode}');
+    }
+  }
+
+  static Future<void> createOrder({
+    required String apartmentId,
+    required int guestCount,
+    required DateTime checkInDate,
+    required DateTime checkOutDate,
+    required double pricePerNight,
+    required double totalCost,
+  }) async {
+    try {
+      if (_token == null) throw Exception('Not authenticated');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/order/user/store'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+        body: jsonEncode({
+          'appartment_id': apartmentId,
+          'guest_count': guestCount,
+          'check_in_date': checkInDate.toIso8601String().substring(0, 10),
+          'check_out_date': checkOutDate.toIso8601String().substring(0, 10),
+          'price_per_night': pricePerNight,
+          'total_cost': totalCost,
+        }),
+      );
+      print(response.body);
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to create booking');
+      }
+    } catch (e) {
+      throw Exception('Booking failed: $e');
+    }
+  }
+
+  static Future<void> updateOrderData(
+    String id, {
+    int? guestCount,
+    DateTime? checkInDate,
+    DateTime? checkOutDate,
+  }) async {
+    try {
+      if (_token == null) throw Exception('Not authenticated');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/order/user/update/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+        body: jsonEncode({
+          if (guestCount != null) 'guest_count': guestCount,
+          if (checkInDate != null)
+            'check_in_date': checkInDate.toIso8601String().substring(0, 10),
+          if (checkOutDate != null)
+            'check_out_date': checkOutDate.toIso8601String().substring(0, 10),
+        }),
+      );
+      print(response.body);
+
+      if (response.statusCode != 200) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to update booking');
+      }
+    } catch (e) {
+      throw Exception('Update booking failed: $e');
+    }
+  }
+
+  static Future<List<Order>> getUserOrders() async {
+    try {
+      if (_token == null) throw Exception('Not authenticated');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/order/user/index'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode == 200) {
+        final dynamic data = jsonDecode(response.body);
+        final List<dynamic> list = data['orders'] ?? data['data'] ?? [];
+        return list.map((e) => Order.fromJson(e)).toList();
+      } else {
+        throw Exception('Failed to load user orders: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Get user orders failed: $e');
+    }
+  }
+
+  static Future<Order> getUserOrderDetails(String id) async {
+    try {
+      if (_token == null) throw Exception('Not authenticated');
+      final response = await http.get(
+        Uri.parse('$baseUrl/order/user/show/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body + id);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return Order.fromJson(data['data'] ?? data);
+      } else {
+        throw Exception('Failed to load order: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Get order details failed: $e');
+    }
+  }
+
+  static Future<void> cancelUserOrder(String id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/order/user/cancle/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (_token != null) 'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode != 200) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to cancel order');
+      }
+    } catch (e) {
+      throw Exception('Cancel order failed: $e');
+    }
+  }
+
+  static Future<List<DateTime>> getUnavailableDates(String apartmentId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/order/user/unavailable_dates/$apartmentId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (_token != null) 'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List<dynamic> dates = data['data'] ?? data;
+        return dates.map((e) => DateTime.parse(e.toString())).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      debugPrint('Error getting unavailable dates: $e');
+      return [];
+    }
+  }
+
+  static Future<void> rateOrder(String id, int rating) async {
+    try {
+      if (_token == null) throw Exception('Not authenticated');
+      final response = await http.post(
+        Uri.parse('$baseUrl/order/user/rate/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+        body: jsonEncode({'rating': rating}),
+      );
+      print(response.body);
+
+      if (response.statusCode != 200) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to rate order');
+      }
+    } catch (e) {
+      throw Exception('Rate order failed: $e');
+    }
+  }
+
+  static Future<void> toggleFavorite(String appId) async {
+    await _postVoid('$baseUrl/favorites/toggle/$appId');
+  }
+
+  static Future<List<Property>> getFavorites() async {
+    try {
+      if (_token == null) throw Exception('Not authenticated');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/favorites/index'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode == 200) {
+        final dynamic data = jsonDecode(response.body);
+        final List<dynamic> list = data['favorites'] ?? [];
+        return list.map((e) => Property.fromJson(e)).toList();
+      } else {
+        throw Exception('Failed to load favorites');
+      }
+    } catch (e) {
+      throw Exception('Get favorites failed: $e');
+    }
+  }
+
+  static Future<void> storeRating(
+    String orderId,
+    int rating,
+    String comment,
+  ) async {
+    try {
+      if (_token == null) throw Exception('Not authenticated');
+      final response = await http.post(
+        Uri.parse('$baseUrl/rating/store/$orderId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+        body: jsonEncode({'rating': rating, 'comment': comment}),
+      );
+      print(response.body);
+
+      if (response.statusCode != 200) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to store rating');
+      }
+    } catch (e) {
+      throw Exception('Store rating failed: $e');
+    }
+  }
+
+  static Future<void> updateRating(
+    String ratingId,
+    int rating,
+    String comment,
+  ) async {
+    try {
+      if (_token == null) throw Exception('Not authenticated');
+      final response = await http.post(
+        Uri.parse('$baseUrl/rating/update/$ratingId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+        body: jsonEncode({'rating': rating, 'comment': comment}),
+      );
+      print(response.body);
+
+      if (response.statusCode != 200) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to update rating');
+      }
+    } catch (e) {
+      throw Exception('Update rating failed: $e');
+    }
+  }
+
+  static Future<List<dynamic>> getApartmentRatings(String apartmentId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/rating/index/$apartmentId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (_token != null) 'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode == 200) {
+        final dynamic data = jsonDecode(response.body);
+        return data['data'] ?? [];
+      } else {
+        throw Exception('Failed to load ratings');
+      }
+    } catch (e) {
+      debugPrint('Get ratings failed: $e');
+      return [];
+    }
+  }
+
+  static Future<List<dynamic>> getCreditCards() async {
+    try {
+      if (_token == null) throw Exception('Not authenticated');
+      final response = await http.get(
+        Uri.parse('$baseUrl/user/credit-cards'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode == 200) {
+        final dynamic data = jsonDecode(response.body);
+        return data['data'] ?? [];
+      } else {
+        throw Exception('Failed to load cards');
+      }
+    } catch (e) {
+      throw Exception('Get cards failed: $e');
+    }
+  }
+
+  static Future<void> addCreditCard({
+    required String holderName,
+    required String cardNumber,
+    required String expirationDate,
+    required String cvv,
+  }) async {
+    try {
+      if (_token == null) throw Exception('Not authenticated');
+      final response = await http.post(
+        Uri.parse('$baseUrl/user/credit-cards'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+        body: jsonEncode({
+          'card_holder_name': holderName,
+          'card_number': cardNumber,
+          'expiration_date': expirationDate,
+          'cvv': cvv,
+        }),
+      );
+      print(response.body);
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to add card');
+      }
+    } catch (e) {
+      throw Exception('Add card failed: $e');
     }
   }
 }

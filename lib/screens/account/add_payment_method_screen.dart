@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../theme.dart';
+import '../../cubits/user/user_cubit.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
@@ -33,13 +35,26 @@ class _AddPaymentMethodScreenState extends State<AddPaymentMethodScreen> {
         _isLoading = true;
       });
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
+      // Use Cubit to add card
+      await context.read<UserCubit>().addCreditCard(
+        cardNumber: _cardNumberController.text,
+        expirationDate: _expiryController.text,
+        cvv: _cvvController.text,
+        holderName: _holderNameController.text,
+      );
 
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      final state = context.read<UserCubit>().state;
+      if (state is UserError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add card: ${state.message}')),
+        );
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Payment method added successfully!')),
         );

@@ -47,4 +47,15 @@ class PaymentMethod {
       ),
     ];
   }
+
+  factory PaymentMethod.fromJson(Map<String, dynamic> json) {
+    return PaymentMethod(
+      id: json['id']?.toString() ?? '',
+      cardType: json['type'] ?? 'Unknown',
+      lastFourDigits: json['last_four_digits']?.toString() ?? '****',
+      expiryDate: json['expiry_date'] ?? '',
+      holderName: json['holder_name'] ?? '',
+      isDefault: json['is_default'] == true || json['is_default'] == 1,
+    );
+  }
 }

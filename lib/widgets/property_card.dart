@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../models/property.dart';
 import '../theme.dart';
 import '../services/api_service.dart';
+import '../cubits/user/user_cubit.dart';
 
-class PropertyCard extends StatelessWidget {
+class PropertyCard extends StatefulWidget {
   final Property property;
   final VoidCallback? onTap;
   final bool showFavoriteButton;
@@ -16,9 +18,41 @@ class PropertyCard extends StatelessWidget {
   });
 
   @override
+  State<PropertyCard> createState() => _PropertyCardState();
+}
+
+class _PropertyCardState extends State<PropertyCard> {
+  late bool _isFavorite;
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavorite = widget.property.isFavorite;
+
+    // Cross-reference with UserCubit to ensure accurate favorite status
+    final userState = context.read<UserCubit>().state;
+    if (userState is UserLoaded) {
+      final isActuallyFavorite = userState.favorites.any(
+        (p) => p.id == widget.property.id,
+      );
+      if (isActuallyFavorite) {
+        _isFavorite = true;
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(PropertyCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.property.isFavorite != widget.property.isFavorite) {
+      _isFavorite = widget.property.isFavorite;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardTheme.color,
@@ -42,9 +76,12 @@ class PropertyCard extends StatelessWidget {
                     color: Theme.of(
                       context,
                     ).colorScheme.surfaceContainerHighest,
-                    child: property.images.isNotEmpty
+                    child: widget.property.images.isNotEmpty
                         ? Image.network(
-                            ApiService.getImageUrl(property.images.first) ?? '',
+                            ApiService.getImageUrl(
+                                  widget.property.images.first,
+                                ) ??
+                                '',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
@@ -71,7 +108,7 @@ class PropertyCard extends StatelessWidget {
                   ),
                 ),
                 // Featured badge
-                if (property.isFeatured)
+                if (widget.property.isFeatured)
                   Positioned(
                     top: AppSpacing.sm,
                     left: AppSpacing.sm,
@@ -95,7 +132,7 @@ class PropertyCard extends StatelessWidget {
                     ),
                   ),
                 // Favorite button
-                if (showFavoriteButton)
+                if (widget.showFavoriteButton)
                   Positioned(
                     top: AppSpacing.sm,
                     right: AppSpacing.sm,
@@ -104,11 +141,56 @@ class PropertyCard extends StatelessWidget {
                         color: Colors.white.withOpacity(0.9),
                         shape: BoxShape.circle,
                       ),
-                      child: IconButton(
-                        icon: const Icon(Icons.favorite_border, size: 20),
-                        color: Theme.of(context).colorScheme.error,
-                        onPressed: () {
-                          // TODO: Implement favorite functionality
+                      child: BlocBuilder<UserCubit, UserState>(
+                        builder: (context, state) {
+                          bool isFavorited = _isFavorite;
+                          if (state is UserLoaded) {
+                            isFavorited = state.favorites.any(
+                              (p) => p.id == widget.property.id,
+                            );
+                          }
+
+                          return IconButton(
+                            icon: Icon(
+                              isFavorited
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              size: 20,
+                            ),
+                            color: Theme.of(context).colorScheme.error,
+                            onPressed: () async {
+                              setState(() {
+                                _isFavorite = !isFavorited;
+                              });
+                              try {
+                                await ApiService.toggleFavorite(
+                                  widget.property.id,
+                                );
+                                if (mounted) {
+                                  context.read<UserCubit>().loadUserData();
+                                }
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      !isFavorited
+                                          ? 'Added to favorites'
+                                          : 'Removed from favorites',
+                                    ),
+                                    duration: const Duration(seconds: 1),
+                                  ),
+                                );
+                              } catch (e) {
+                                setState(() {
+                                  _isFavorite = isFavorited; // Revert
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Failed to update favorite'),
+                                  ),
+                                );
+                              }
+                            },
+                          );
                         },
                       ),
                     ),
@@ -123,7 +205,7 @@ class PropertyCard extends StatelessWidget {
                 children: [
                   // Title
                   Text(
-                    property.title,
+                    widget.property.title,
                     style: Theme.of(context).textTheme.headlineSmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -140,7 +222,7 @@ class PropertyCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          '${property.location}, ${property.city}',
+                          '${widget.property.location}, ${widget.property.city}',
                           style: Theme.of(context).textTheme.bodySmall,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -155,19 +237,19 @@ class PropertyCard extends StatelessWidget {
                       _buildInfoChip(
                         context,
                         Icons.bed,
-                        '${property.bedrooms} Beds',
+                        '${widget.property.bedrooms} Beds',
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       _buildInfoChip(
                         context,
                         Icons.bathtub,
-                        '${property.bathrooms} Baths',
+                        '${widget.property.bathrooms} Baths',
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       _buildInfoChip(
                         context,
                         Icons.square_foot,
-                        '${property.area.toInt()} m²',
+                        '${widget.property.area.toInt()} m²',
                       ),
                     ],
                   ),
@@ -185,14 +267,14 @@ class PropertyCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${property.rating} (${property.reviewCount})',
+                            '${widget.property.rating} (${widget.property.reviewCount})',
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
                       Text(
-                        '\$${property.price.toStringAsFixed(0)}/mo',
+                        '\$${widget.property.price.toStringAsFixed(0)}/mo',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               color: Theme.of(context).colorScheme.primary,

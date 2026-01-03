@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:maisonel_v02/services/api_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../theme.dart';
 import '../../models/property.dart';
 import '../../widgets/property_card.dart';
+import '../../cubits/apartment/apartment_cubit.dart';
 import 'add_edit_listing_screen.dart';
 
 class MyListingsScreen extends StatefulWidget {
@@ -13,61 +14,11 @@ class MyListingsScreen extends StatefulWidget {
 }
 
 class _MyListingsScreenState extends State<MyListingsScreen> {
-  List<Property> _myListings = [];
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _fetchMyListings();
-  }
-
-  // جلب البيانات من السيرفر
-  Future<void> _fetchMyListings() async {
-    setState(() => _isLoading = true);
-    try {
-      // ملحوظة: تأكد أن ApiService يحتوي على دالة لجلب عقارات المستخدم الحالي
-      // إذا لم تتوفر، سنستخدم جلب الكل ونقوم بالتصفية (كمثال)
-      final all = await ApiService.getOwnedApartments();
-
-      setState(() {
-        _myListings = all; // هنا نفترض جلب العقارات الخاصة بالمسوق
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading listings: $e')));
-      }
-    }
-  }
-
-  // حذف العقار من السيرفر
-  Future<void> _deleteProperty(Property property) async {
-    try {
-      // نفترض وجود دالة deleteProperty في ApiService
-      // await ApiService.deleteProperty(property.id);
-
-      setState(() {
-        _myListings.removeWhere((p) => p.id == property.id);
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Listing deleted successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to delete: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    // Load apartments if not already loaded or if specific refresh needed
+    context.read<ApartmentCubit>().loadApartments();
   }
 
   @override
@@ -79,28 +30,39 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _fetchMyListings,
+            onPressed: () => context.read<ApartmentCubit>().loadApartments(),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _myListings.isEmpty
-          ? _buildEmptyState()
-          : RefreshIndicator(
-              onRefresh: _fetchMyListings,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                itemCount: _myListings.length,
-                itemBuilder: (context, index) {
-                  final property = _myListings[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: _buildListingCard(property),
+      body: BlocBuilder<ApartmentCubit, ApartmentState>(
+        builder: (context, state) {
+          if (state is ApartmentLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is ApartmentError) {
+            return Center(child: Text('Error: ${state.message}'));
+          } else if (state is ApartmentLoaded) {
+            final myListings = state.ownedApartments;
+            return myListings.isEmpty
+                ? _buildEmptyState()
+                : RefreshIndicator(
+                    onRefresh: () async =>
+                        context.read<ApartmentCubit>().loadApartments(),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      itemCount: myListings.length,
+                      itemBuilder: (context, index) {
+                        final property = myListings[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: _buildListingCard(property),
+                        );
+                      },
+                    ),
                   );
-                },
-              ),
-            ),
+          }
+          return const SizedBox.shrink();
+        },
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -108,7 +70,12 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
             MaterialPageRoute(
               builder: (context) => const AddEditListingScreen(),
             ),
-          ).then((_) => _fetchMyListings()); // تحديث بعد الإضافة
+          ).then((_) {
+            // Reload in case changes were made via AddEdit (if it doesn't use Cubit yet)
+            // Or if it does, it might have updated state, but a reload ensures sync.
+            // Ideally AddEditScreen uses Cubit so state is already updated.
+            context.read<ApartmentCubit>().loadApartments();
+          });
         },
         backgroundColor: Theme.of(context).colorScheme.primary,
         icon: const Icon(Icons.add),
@@ -132,7 +99,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                 property: property,
                 showFavoriteButton: false,
                 onTap: () {
-                  // الانتقال لتفاصيل العقار إذا رغبت
+                  // Navigate to details if needed
                 },
               ),
               if (property.approvalStatus != 1)
@@ -199,7 +166,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                       Icon(Icons.visibility, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
-                        '${(property.reviewCount * 12).toInt()} views', // رقم افتراضي للمشاهدات
+                        '${(property.reviewCount * 12).toInt()} views',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -215,7 +182,10 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                               builder: (context) =>
                                   AddEditListingScreen(property: property),
                             ),
-                          ).then((_) => _fetchMyListings());
+                          ).then(
+                            (_) =>
+                                context.read<ApartmentCubit>().loadApartments(),
+                          );
                         },
                   icon: const Icon(Icons.edit_outlined),
                   color: property.approvalStatus == -1
@@ -231,22 +201,15 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                       ? Colors.grey
                       : Theme.of(context).colorScheme.error,
                 ),
-                // تبديل حالة العقار (نشط/غير نشط)
+                // Switch (Active/Inactive)
                 Switch(
                   value: property.approvalStatus == 1
-                      ? property.isFeatured
+                      ? property.isActive
                       : false,
                   onChanged: property.approvalStatus == 1
-                      ? (value) async {
-                          // هنا يتم استدعاء ApiService لتحديث حالة العقار
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                value
-                                    ? 'Listing Activated'
-                                    : 'Listing Deactivated',
-                              ),
-                            ),
+                      ? (value) {
+                          context.read<ApartmentCubit>().toggleApartmentStatus(
+                            property.id,
                           );
                         }
                       : null,
@@ -273,7 +236,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _deleteProperty(property);
+              context.read<ApartmentCubit>().deleteApartment(property.id);
             },
             child: const Text(
               'Delete',
