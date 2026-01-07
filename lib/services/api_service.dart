@@ -14,12 +14,10 @@ class LoginResult {
 }
 
 class ApiService {
-  // قواعد بيانات الروابط حسب المنصة
   static const String _androidBaseUrl = 'http://10.0.2.2:8000/api';
   static const String _iosBaseUrl = 'http://127.0.0.1:8000/api';
   static const String _webBaseUrl = 'http://localhost:8000/api';
 
-  // المتغيرات الثابتة لتخزين حالة الجلسة
   static String? _token;
   static String? get token => _token;
   static User? currentUser;
@@ -890,7 +888,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final dynamic data = jsonDecode(response.body);
-        return data['data'] ?? [];
+        return data['credit_cards'] ?? [];
       } else {
         throw Exception('Failed to load cards');
       }
@@ -904,6 +902,7 @@ class ApiService {
     required String cardNumber,
     required String expirationDate,
     required String cvv,
+    required String cardType,
   }) async {
     try {
       if (_token == null) throw Exception('Not authenticated');
@@ -919,6 +918,7 @@ class ApiService {
           'card_number': cardNumber,
           'expiration_date': expirationDate,
           'cvv': cvv,
+          'card_type': cardType,
         }),
       );
       print(response.body);
@@ -929,6 +929,34 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Add card failed: $e');
+    }
+  }
+
+  static Future<String> deleteCreditCard(String id) async {
+    try {
+      if (_token == null) throw Exception('Not authenticated');
+      final response = await http.delete(
+        Uri.parse('$baseUrl/user/credit-cards/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to delete card');
+      }
+      if (response.body.isEmpty) {
+        return 'Card deleted';
+      }
+      final data = jsonDecode(response.body);
+      final message = data['message']?.toString();
+      return message == null || message.isEmpty ? 'Card deleted' : message;
+    } catch (e) {
+      throw Exception('Delete card failed: $e');
     }
   }
 }

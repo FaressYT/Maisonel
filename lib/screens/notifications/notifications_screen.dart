@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 import '../../theme.dart';
 import '../../models/notification.dart';
 
@@ -10,7 +11,7 @@ class NotificationsScreen extends StatelessWidget {
     final notifications = AppNotification.getMockNotifications();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.notifications)),
       body: notifications.isEmpty
           ? Center(
               child: Column(
@@ -23,7 +24,7 @@ class NotificationsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    'No notifications yet',
+                    AppLocalizations.of(context)!.noNotifications,
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],
@@ -67,7 +68,7 @@ class NotificationsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _formatDate(notification.date),
+                        _formatDate(context, notification.date),
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ],
@@ -107,16 +108,16 @@ class NotificationsScreen extends StatelessWidget {
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(BuildContext context, DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
 
     if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
+      return AppLocalizations.of(context)!.minutesAgo(difference.inMinutes);
     } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
+      return AppLocalizations.of(context)!.hoursAgo(difference.inHours);
     } else {
-      return '${difference.inDays}d ago';
+      return AppLocalizations.of(context)!.daysAgo(difference.inDays);
     }
   }
 }

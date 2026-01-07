@@ -8,6 +8,7 @@ import '../../models/property.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../cubits/apartment/apartment_cubit.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 
 class AddEditListingScreen extends StatefulWidget {
   final Property? property; // If null, we are adding new listing
@@ -109,16 +110,19 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Photo'),
-        content: const Text('Are you sure you want to delete this photo?'),
+        title: Text(AppLocalizations.of(context)!.deletePhoto),
+        content: Text(AppLocalizations.of(context)!.deletePhotoConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(
+              AppLocalizations.of(context)!.delete,
+              style: const TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -176,7 +180,9 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
       // Validation for images in create mode
       if (widget.property == null && _selectedImages.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please add at least one photo')),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.addPhotoRequired),
+          ),
         );
         return;
       }
@@ -224,8 +230,8 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
             SnackBar(
               content: Text(
                 widget.property == null
-                    ? 'Listing published successfully!'
-                    : 'Listing updated successfully!',
+                    ? AppLocalizations.of(context)!.listingPublished
+                    : AppLocalizations.of(context)!.listingUpdated,
               ),
               backgroundColor: Colors.green,
             ),
@@ -253,7 +259,9 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.property == null ? 'Add New Listing' : 'Edit Listing',
+          widget.property == null
+              ? AppLocalizations.of(context)!.addNewListing
+              : AppLocalizations.of(context)!.editListing,
         ),
       ),
       body: SingleChildScrollView(
@@ -264,30 +272,33 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomTextField(
-                label: 'Title',
+                label: AppLocalizations.of(context)!.title,
                 controller: _titleController,
-                validator: (value) =>
-                    (value == null || value.isEmpty) ? 'Required' : null,
+                validator: (value) => (value == null || value.isEmpty)
+                    ? AppLocalizations.of(context)!.required
+                    : null,
               ),
               const SizedBox(height: AppSpacing.md),
               CustomTextField(
-                label: 'Description',
+                label: AppLocalizations.of(context)!.description,
                 controller: _descriptionController,
                 maxLines: 4,
-                validator: (value) =>
-                    (value == null || value.isEmpty) ? 'Required' : null,
+                validator: (value) => (value == null || value.isEmpty)
+                    ? AppLocalizations.of(context)!.required
+                    : null,
               ),
               const SizedBox(height: AppSpacing.md),
               Row(
                 children: [
                   Expanded(
                     child: CustomTextField(
-                      label: 'Price per night',
+                      label: AppLocalizations.of(context)!.pricePerNight,
                       controller: _priceController,
                       keyboardType: TextInputType.number,
                       prefixIcon: Icons.attach_money,
-                      validator: (value) =>
-                          (value == null || value.isEmpty) ? 'Required' : null,
+                      validator: (value) => (value == null || value.isEmpty)
+                          ? AppLocalizations.of(context)!.required
+                          : null,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -296,7 +307,7 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Property Type',
+                          AppLocalizations.of(context)!.propertyType,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
@@ -304,7 +315,7 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                         DropdownButtonFormField<String>(
                           value: _selectedType,
                           decoration: InputDecoration(
-                            hintText: 'Select Type',
+                            hintText: AppLocalizations.of(context)!.selectType,
                             hintStyle: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: Theme.of(context).hintColor),
                           ),
@@ -327,7 +338,7 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
               ),
               const SizedBox(height: AppSpacing.md),
               CustomTextField(
-                label: 'Location / Address',
+                label: AppLocalizations.of(context)!.locationAddress,
                 controller: _locationController,
                 prefixIcon: Icons.location_on_outlined,
                 validator: (value) =>
@@ -338,7 +349,7 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                 children: [
                   Expanded(
                     child: CustomTextField(
-                      label: 'City',
+                      label: AppLocalizations.of(context)!.city,
                       controller: _cityController,
                       prefixIcon: Icons.location_city,
                       validator: (value) =>
@@ -348,7 +359,7 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: CustomTextField(
-                      label: 'Size (sqm)',
+                      label: AppLocalizations.of(context)!.sizeSqm,
                       controller: _sizeController,
                       keyboardType: TextInputType.number,
                       prefixIcon: Icons.aspect_ratio,
@@ -363,7 +374,7 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                 children: [
                   Expanded(
                     child: CustomTextField(
-                      label: 'Bedrooms',
+                      label: AppLocalizations.of(context)!.bedrooms,
                       controller: _bedroomsController,
                       keyboardType: TextInputType.number,
                       validator: (value) =>
@@ -373,7 +384,7 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: CustomTextField(
-                      label: 'Bathrooms',
+                      label: AppLocalizations.of(context)!.bathrooms,
                       controller: _bathroomsController,
                       keyboardType: TextInputType.number,
                       validator: (value) =>
@@ -387,7 +398,7 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Amenities',
+                    AppLocalizations.of(context)!.amenities,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -401,20 +412,18 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                           textInputAction: TextInputAction.done,
                           onFieldSubmitted: (_) => _addAmenity(),
                           decoration: InputDecoration(
-                            hintText: 'Add amenity (comma separated)',
-                            hintStyle: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context).hintColor,
-                                ),
+                            hintText: AppLocalizations.of(
+                              context,
+                            )!.addAmenityHint,
+                            hintStyle: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Theme.of(context).hintColor),
                           ),
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       ElevatedButton(
                         onPressed: _addAmenity,
-                        child: const Text('Add'),
+                        child: Text(AppLocalizations.of(context)!.add),
                       ),
                     ],
                   ),
@@ -440,7 +449,7 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Photos',
+                    AppLocalizations.of(context)!.photos,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -570,8 +579,8 @@ class _AddEditListingScreenState extends State<AddEditListingScreen> {
               const SizedBox(height: AppSpacing.xl),
               CustomButton(
                 text: widget.property == null
-                    ? 'Publish Listing'
-                    : 'Save Changes',
+                    ? AppLocalizations.of(context)!.publishListing
+                    : AppLocalizations.of(context)!.saveChanges,
                 onPressed: _saveListing,
                 isLoading: _isLoading,
               ),

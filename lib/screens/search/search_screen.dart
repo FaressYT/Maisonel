@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 import 'package:maisonel_v02/services/api_service.dart';
 import '../../theme.dart';
 import '../../models/property.dart';
@@ -85,7 +86,7 @@ class _SearchScreenState extends State<SearchScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Search Error: $e'),
+            content: Text(AppLocalizations.of(context)!.error(e.toString())),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -111,7 +112,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Search Properties'),
+        title: Text(AppLocalizations.of(context)!.searchProperties),
         automaticallyImplyLeading: false,
       ),
       body: Column(
@@ -126,7 +127,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      hintText: 'Search properties...',
+                      hintText: AppLocalizations.of(context)!.searchHint,
                       prefixIcon: const Icon(Icons.search),
                       filled: true,
                       fillColor: Theme.of(
@@ -139,7 +140,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   TextField(
                     controller: _locationController,
                     decoration: InputDecoration(
-                      hintText: 'Location',
+                      hintText: AppLocalizations.of(context)!.location,
                       prefixIcon: const Icon(Icons.location_on),
                       filled: true,
                       fillColor: Theme.of(
@@ -151,7 +152,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
                   // شريط اختيار السعر
                   Text(
-                    'Price Range',
+                    AppLocalizations.of(context)!.priceRange,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: AppSpacing.sm),
@@ -178,7 +179,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
                   // نوع العقار
                   Text(
-                    'Property Type',
+                    AppLocalizations.of(context)!.propertyType,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: AppSpacing.sm),
@@ -187,7 +188,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     children: _propertyTypes.map((type) {
                       final isSelected = type == _selectedPropertyType;
                       return FilterChip(
-                        label: Text(type),
+                        label: Text(_getLocalizedCategoryName(type)),
                         selected: isSelected,
                         onSelected: (selected) =>
                             setState(() => _selectedPropertyType = type),
@@ -202,7 +203,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
                   // عدد الغرف والحمامات
                   Text(
-                    'Bedrooms',
+                    AppLocalizations.of(context)!.bedrooms,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   _buildChoiceChips(
@@ -212,7 +213,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    'Bathrooms',
+                    AppLocalizations.of(context)!.bathrooms,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   _buildChoiceChips(
@@ -224,7 +225,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
                   // خيارات الترتيب
                   Text(
-                    'Sort By',
+                    AppLocalizations.of(context)!.sortBy,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: AppSpacing.sm),
@@ -237,7 +238,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     items: _sortOptions.map((option) {
                       return DropdownMenuItem(
                         value: option,
-                        child: Text(option),
+                        child: Text(_getLocalizedSortOption(option)),
                       );
                     }).toList(),
                     onChanged: (value) => setState(() => _sortBy = value!),
@@ -250,14 +251,16 @@ class _SearchScreenState extends State<SearchScreen> {
                     const Divider(),
                     const SizedBox(height: AppSpacing.md),
                     Text(
-                      'Results Found: ${_searchResults.length}',
+                      AppLocalizations.of(
+                        context,
+                      )!.resultsFound(_searchResults.length),
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     if (_isLoading)
                       const Center(child: CircularProgressIndicator())
                     else if (_searchResults.isEmpty)
-                      const Center(
+                      Center(
                         child: Column(
                           children: [
                             Icon(
@@ -265,7 +268,9 @@ class _SearchScreenState extends State<SearchScreen> {
                               size: 64,
                               color: Colors.grey,
                             ),
-                            Text('No properties match your filters'),
+                            Text(
+                              AppLocalizations.of(context)!.noPropertiesMatch,
+                            ),
                           ],
                         ),
                       )
@@ -307,7 +312,7 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 Expanded(
                   child: CustomButton(
-                    text: 'Clear',
+                    text: AppLocalizations.of(context)!.clear,
                     onPressed: _clearFilters,
                     variant: ButtonVariant.outline,
                   ),
@@ -316,7 +321,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 Expanded(
                   flex: 2,
                   child: CustomButton(
-                    text: _isLoading ? 'Searching...' : 'Search',
+                    text: _isLoading
+                        ? AppLocalizations.of(context)!.searching
+                        : AppLocalizations.of(context)!.search,
                     onPressed: _isLoading ? () {} : _performSearch,
                     icon: _isLoading ? null : Icons.search,
                   ),
@@ -342,7 +349,9 @@ class _SearchScreenState extends State<SearchScreen> {
           return Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: ChoiceChip(
-              label: Text(index == 0 ? 'Any' : '$index+'),
+              label: Text(
+                index == 0 ? AppLocalizations.of(context)!.any : '$index+',
+              ),
               selected: selectedValue == index,
               onSelected: (bool selected) => onSelected(index),
               selectedColor: Theme.of(context).colorScheme.primary,
@@ -354,5 +363,39 @@ class _SearchScreenState extends State<SearchScreen> {
         }),
       ),
     );
+  }
+
+  String _getLocalizedCategoryName(String category) {
+    switch (category) {
+      case 'All':
+        return AppLocalizations.of(context)!.all;
+      case 'Apartment':
+        return AppLocalizations.of(context)!.apartment;
+      case 'House':
+        return AppLocalizations.of(context)!.house;
+      case 'Villa':
+        return AppLocalizations.of(context)!.villa;
+      case 'Studio':
+        return AppLocalizations.of(context)!.studio;
+      default:
+        return category;
+    }
+  }
+
+  String _getLocalizedSortOption(String option) {
+    switch (option) {
+      case 'Featured':
+        return AppLocalizations.of(context)!.featured;
+      case 'Price: Low to High':
+        return AppLocalizations.of(context)!.priceLowToHigh;
+      case 'Price: High to Low':
+        return AppLocalizations.of(context)!.priceHighToLow;
+      case 'Rating':
+        return AppLocalizations.of(context)!.rating;
+      case 'Newest':
+        return AppLocalizations.of(context)!.newest;
+      default:
+        return option;
+    }
   }
 }

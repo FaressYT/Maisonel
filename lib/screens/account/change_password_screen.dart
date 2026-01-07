@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 import '../../theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -44,7 +45,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             _isLoading = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Password changed successfully!')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.passwordChangedSuccess,
+              ),
+            ),
           );
           Navigator.pop(context);
         }
@@ -67,7 +72,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Change Password')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.changePassword)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Form(
@@ -75,52 +80,52 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           child: Column(
             children: [
               CustomTextField(
-                label: 'Current Password',
+                label: AppLocalizations.of(context)!.currentPassword,
                 controller: _currentPasswordController,
                 prefixIcon: Icons.lock_outline,
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your current password';
+                    return AppLocalizations.of(context)!.enterCurrentPassword;
                   }
                   return null;
                 },
               ),
               const SizedBox(height: AppSpacing.md),
               CustomTextField(
-                label: 'New Password',
+                label: AppLocalizations.of(context)!.newPassword,
                 controller: _newPasswordController,
                 prefixIcon: Icons.lock_outline,
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a new password';
+                    return AppLocalizations.of(context)!.enterNewPassword;
                   }
                   if (value.length < 6) {
-                    return 'Password must be at least 6 characters';
+                    return AppLocalizations.of(context)!.passwordLength;
                   }
                   return null;
                 },
               ),
               const SizedBox(height: AppSpacing.md),
               CustomTextField(
-                label: 'Confirm New Password',
+                label: AppLocalizations.of(context)!.confirmNewPassword,
                 controller: _confirmPasswordController,
                 prefixIcon: Icons.lock_outline,
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please confirm your new password';
+                    return AppLocalizations.of(context)!.confirmNewPasswordHint;
                   }
                   if (value != _newPasswordController.text) {
-                    return 'Passwords do not match';
+                    return AppLocalizations.of(context)!.passwordsDoNotMatch;
                   }
                   return null;
                 },
               ),
               const SizedBox(height: AppSpacing.xl),
               CustomButton(
-                text: 'Update Password',
+                text: AppLocalizations.of(context)!.updatePassword,
                 onPressed: _changePassword,
                 isLoading: _isLoading,
               ),

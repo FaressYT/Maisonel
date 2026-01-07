@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/property.dart';
 import '../../cubits/order/order_cubit.dart';
@@ -39,7 +40,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Book Apartment')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.bookApartment)),
       body: Column(
         children: [
           // Toggle Switch
@@ -52,8 +53,18 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
             child: Row(
               children: [
-                Expanded(child: _buildToggleOption('Daily', !isMonthly)),
-                Expanded(child: _buildToggleOption('Monthly', isMonthly)),
+                Expanded(
+                  child: _buildToggleOption(
+                    AppLocalizations.of(context)!.daily,
+                    !isMonthly,
+                  ),
+                ),
+                Expanded(
+                  child: _buildToggleOption(
+                    AppLocalizations.of(context)!.monthly,
+                    isMonthly,
+                  ),
+                ),
               ],
             ),
           ),
@@ -65,7 +76,9 @@ class _BookingScreenState extends State<BookingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isMonthly ? 'Select Duration' : 'Select Dates',
+                    isMonthly
+                        ? AppLocalizations.of(context)!.selectDuration
+                        : AppLocalizations.of(context)!.selectDates,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -91,25 +104,32 @@ class _BookingScreenState extends State<BookingScreen> {
                     child: Column(
                       children: [
                         _buildSummaryRow(
-                          'Rate',
+                          AppLocalizations.of(context)!.rate,
                           isMonthly
-                              ? '\$${widget.property.price.toInt()}/mo'
-                              : '\$${(widget.property.price / 30).toStringAsFixed(0)}/day',
+                              ? '\$${widget.property.price.toInt()}${AppLocalizations.of(context)!.perMonthSuffix}'
+                              : '\$${(widget.property.price / 30).toStringAsFixed(0)}${AppLocalizations.of(context)!.perDaySuffix}',
                         ),
                         const Divider(),
                         if (isMonthly)
-                          _buildSummaryRow('Duration', '$monthsDuration months')
+                          _buildSummaryRow(
+                            AppLocalizations.of(context)!.duration,
+                            AppLocalizations.of(
+                              context,
+                            )!.monthsCount(monthsDuration),
+                          )
                         else
                           _buildSummaryRow(
-                            'Duration',
-                            '${selectedDateRange?.duration.inDays ?? 0} days',
+                            AppLocalizations.of(context)!.duration,
+                            AppLocalizations.of(context)!.daysCount(
+                              selectedDateRange?.duration.inDays ?? 0,
+                            ),
                           ),
                         const SizedBox(height: AppSpacing.md),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Total',
+                              AppLocalizations.of(context)!.total,
                               style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
@@ -186,16 +206,20 @@ class _BookingScreenState extends State<BookingScreen> {
                         if (state is OrderError) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Booking failed: ${state.message}'),
+                              content: Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.bookingFailed(state.message),
+                              ),
                               backgroundColor: Colors.red,
                             ),
                           );
                         } else {
                           // Success (OrderLoaded or updated)
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               content: Text(
-                                'Booking request sent successfully!',
+                                AppLocalizations.of(context)!.bookingSuccess,
                               ),
                               backgroundColor: Colors.green,
                             ),
@@ -204,7 +228,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         }
                       }
                     : null,
-                child: const Text('Confirm Booking'),
+                child: Text(AppLocalizations.of(context)!.confirmBooking),
               ),
             ),
           ),
@@ -217,7 +241,7 @@ class _BookingScreenState extends State<BookingScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          isMonthly = title == 'Monthly';
+          isMonthly = title == AppLocalizations.of(context)!.monthly;
         });
       },
       child: Container(
@@ -274,7 +298,7 @@ class _BookingScreenState extends State<BookingScreen> {
               children: [
                 Text(
                   selectedDateRange == null
-                      ? 'Select Dates'
+                      ? AppLocalizations.of(context)!.selectDates
                       : '${selectedDateRange!.start.toString().split(' ')[0]} - ${selectedDateRange!.end.toString().split(' ')[0]}',
                 ),
                 const Icon(Icons.calendar_today),
@@ -290,7 +314,7 @@ class _BookingScreenState extends State<BookingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Start Date'),
+        Text(AppLocalizations.of(context)!.startDate),
         const SizedBox(height: AppSpacing.sm),
         InkWell(
           onTap: () async {
@@ -320,7 +344,7 @@ class _BookingScreenState extends State<BookingScreen> {
               children: [
                 Text(
                   startMonth == null
-                      ? 'Select Start Date'
+                      ? AppLocalizations.of(context)!.selectStartDate
                       : startMonth!.toString().split(' ')[0],
                 ),
                 const Icon(Icons.calendar_today),
@@ -329,20 +353,24 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        const Text('Duration (Months)'),
+        Text(AppLocalizations.of(context)!.monthsDurationLabel),
         Slider(
           value: monthsDuration.toDouble(),
           min: 1,
           max: 12,
           divisions: 11,
-          label: '$monthsDuration months',
+          label: AppLocalizations.of(context)!.monthsCount(monthsDuration),
           onChanged: (val) {
             setState(() {
               monthsDuration = val.round();
             });
           },
         ),
-        Center(child: Text('$monthsDuration months')),
+        Center(
+          child: Text(
+            AppLocalizations.of(context)!.monthsCount(monthsDuration),
+          ),
+        ),
       ],
     );
   }

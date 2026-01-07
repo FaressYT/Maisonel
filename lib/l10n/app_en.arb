@@ -1,0 +1,354 @@
+{
+  "settings": "Settings",
+  "account": "Account",
+  "language": "Language",
+  "personalInformation": "Personal Information",
+  "name": "Name",
+  "phone": "Phone",
+  "birthDate": "Birth Date",
+  "idDocument": "ID Document",
+  "viewDocument": "View Document",
+  "editProfile": "Edit Profile",
+  "myFavorites": "My Favorites",
+  "changePassword": "Change Password",
+  "paymentMethods": "Payment Methods",
+  "hosting": "Hosting",
+  "bookingRequests": "Booking Requests",
+  "preferences": "Preferences",
+  "notifications": "Notifications",
+  "darkMode": "Dark Mode",
+  "support": "Support",
+  "privacyPolicy": "Privacy Policy",
+  "termsOfService": "Terms of Service",
+  "about": "About",
+  "logout": "Logout",
+  "cancel": "Cancel",
+  "logoutConfirmation": "Are you sure you want to logout?",
+  "verified": "Verified",
+  "english": "English",
+  "arabic": "Arabic",
+  "selectLanguage": "Select Language",
+  "noPhoneNumber": "No phone number",
+  "notProvided": "Not provided",
+  "privacyPolicyComingSoon": "Privacy policy coming soon!",
+  "termsOfServiceComingSoon": "Terms of Service coming soon!",
+  "appDescription": "Find your perfect home with Maisonel - the premier home rental platform.",
+  "pleaseLogIn": "Please log in",
+  "welcomeBack": "Welcome Back",
+  "enterPhoneNumber": "Enter your phone number",
+  "enterPassword": "Enter your password",
+  "pleaseEnterPhoneNumber": "Please enter your phone number",
+  "validPhoneStart09": "Please enter a valid number start with 09",
+  "validPhone": "Please enter a valid phone number",
+  "password": "Password",
+  "pleaseEnterPassword": "Please enter your password",
+  "passwordLength": "Password must be at least 6 characters",
+  "login": "Login",
+  "dontHaveAccount": "Don't have an account? ",
+  "signUp": "Sign Up",
+  "createAccount": "Create Account",
+  "joinMaisonel": "Join Maisonel today",
+  "firstName": "First Name",
+  "lastName": "Last Name",
+  "birthdate": "Birthdate",
+  "selectBirthdate": "Select your birthdate",
+  "pleaseSelectBirthdate": "Please select your birthdate",
+  "confirmPassword": "Confirm Password",
+  "reEnterPassword": "Re-enter your password",
+  "pleaseConfirmPassword": "Please confirm your password",
+  "idPhoto": "ID Photo",
+  "tapToUploadId": "Tap to upload ID photo",
+  "agreeTo": "I agree to the ",
+  "acceptTerms": "Please accept the terms and conditions",
+  "selectProfilePicture": "Please select a profile picture",
+  "uploadIdPhoto": "Please upload your ID photo",
+  "accountCreated": "Account created successfully! Please login.",
+  "required": "Required",
+  "alreadyHaveAccount": "Already have an account? ",
+  "home": "Home",
+  "search": "Search",
+  "myListings": "My Listings",
+  "orders": "Orders",
+  "account": "Account",
+  "hello": "Hello, {name}",
+  "@hello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "guest": "Guest",
+  "findDreamHome": "Find your dream home",
+  "featured": "Featured",
+  "popularProperties": "Popular Properties",
+  "retry": "Retry",
+  "error": "Error: {error}",
+  "@error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noPropertiesFound": "No properties found",
+  "checkBackLater": "Check back later for new listings or refresh the page",
+  "searchProperties": "Search Properties",
+  "searchHint": "Search properties...",
+  "location": "Location",
+  "priceRange": "Price Range",
+  "propertyType": "Property Type",
+  "bedrooms": "Bedrooms",
+  "bathrooms": "Bathrooms",
+  "sortBy": "Sort By",
+  "resultsFound": "Results Found: {count}",
+  "@resultsFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noPropertiesMatch": "No properties match your filters",
+  "clear": "Clear",
+  "searching": "Searching...",
+  "any": "Any",
+  "all": "All",
+  "apartment": "Apartment",
+  "house": "House",
+  "villa": "Villa",
+  "studio": "Studio",
+  "priceLowToHigh": "Price: Low to High",
+  "priceHighToLow": "Price: High to Low",
+  "rating": "Rating",
+  "newest": "Newest",
+  "failedToUpdateFavorite": "Failed to update favorite",
+  "perMonth": "/ month",
+  "bedroomsCount": "{count} Bed",
+  "@bedroomsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bathroomsCount": "{count} Bath",
+  "@bathroomsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "areaSqm": "{area} m²",
+  "@areaSqm": {
+    "placeholders": {
+      "area": {
+        "type": "double",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "descriptionTitle": "Description",
+  "amenities": "Amenities",
+  "bookNow": "Book Now",
+  "deletePhoto": "Delete Photo",
+  "deletePhotoConfirm": "Are you sure you want to delete this photo?",
+  "delete": "Delete",
+  "addPhotoRequired": "Please add at least one photo",
+  "listingPublished": "Listing published successfully!",
+  "listingUpdated": "Listing updated successfully!",
+  "addNewListing": "Add New Listing",
+  "editListing": "Edit Listing",
+  "title": "Title",
+  "description": "Description",
+  "pricePerNight": "Price per night",
+  "selectType": "Select Type",
+  "locationAddress": "Location / Address",
+  "city": "City",
+  "sizeSqm": "Size (sqm)",
+  "addAmenityHint": "Add amenity (comma separated)",
+  "add": "Add",
+  "photos": "Photos",
+  "publishListing": "Publish Listing",
+  "saveChanges": "Save Changes",
+  "loft": "Loft",
+  "addListing": "Add Listing",
+  "rejected": "Rejected",
+  "notApprovedYet": "Not Approved Yet",
+  "viewsCount": "{count} views",
+  "@viewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteListing": "Delete Listing",
+  "deleteListingConfirm": "Are you sure you want to delete \"{title}\"?",
+  "@deleteListingConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "noListingsYet": "No listings yet",
+  "startAddingProperties": "Start adding your properties to reach customers",
+  "bookApartment": "Book Apartment",
+  "daily": "Daily",
+  "monthly": "Monthly",
+  "selectDuration": "Select Duration",
+  "selectDates": "Select Dates",
+  "startDate": "Start Date",
+  "selectStartDate": "Select Start Date",
+  "monthsDurationLabel": "Duration (Months)",
+  "rate": "Rate",
+  "perMonthSuffix": "/mo",
+  "perDaySuffix": "/day",
+  "duration": "Duration",
+  "monthsCount": "{count} months",
+  "@monthsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysCount": "{count} days",
+  "@daysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "total": "Total",
+  "confirmBooking": "Confirm Booking",
+  "bookingFailed": "Booking failed: {error}",
+  "@bookingFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "bookingSuccess": "Booking request sent successfully!",
+  "processingApproval": "Processing approval...",
+  "processingRejection": "Processing rejection...",
+  "failedToLoadRequests": "Failed to load requests",
+  "unknownProperty": "Unknown Property",
+  "checkIn": "Check-in",
+  "checkOut": "Check-out",
+  "nights": "Nights",
+  "nightsCount": "{count} nights",
+  "@nightsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "guestLabel": "Guests",
+  "guestCount": "{count} guests",
+  "@guestCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "payment": "Payment",
+  "notSpecified": "Not specified",
+  "bookedOn": "Booked on",
+  "totalAmount": "Total Amount",
+  "reject": "Reject",
+  "approve": "Approve",
+  "noPendingRequests": "No pending requests found",
+  "pending": "Pending",
+  "all": "All",
+  "confirmed": "Confirmed",
+  "completed": "Completed",
+  "cancelled": "Cancelled",
+  "orderHistory": "Order History",
+  "orderDetails": "Order Details #{id}",
+  "@orderDetails": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "propertyLabel": "Property",
+  "unknownLocation": "Unknown Location",
+  "status": "Status",
+  "totalPaid": "Total Paid",
+  "leaveReview": "Leave a Review",
+  "cancelBooking": "Cancel Booking",
+  "cancellationRequestSent": "Cancellation request sent",
+  "noOrdersFoundForStatus": "No orders found for {status}",
+  "@noOrdersFoundForStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "noNotifications": "No notifications yet",
+  "minutesAgo": "{count}m ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{count}h ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "{count}d ago",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selectRating": "Please select a rating",
+  "reviewSubmitted": "Review submitted successfully!",
+  "reviewFailed": "Failed to submit review: {error}",
+  "@reviewFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "howWasStay": "How was your stay?",
+  "shareExperience": "Share your experience...",
+  "submitReview": "Submit Review",
+  "failedToLoadFavorites": "Failed to load favorites: {error}",
+  "@failedToLoadFavorites": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noFavoritesYet": "No favorites yet",
+  "startAddingFavorites": "Start adding properties to your favorites!",
+  "currentPassword": "Current Password",
+  "enterCurrentPassword": "Please enter your current password",
+  "newPassword": "New Password",
+  "enterNewPassword": "Please enter a new password",
+  "confirmNewPassword": "Confirm New Password",
+  "confirmNewPasswordHint": "Please confirm your new password",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "updatePassword": "Update Password",
+  "passwordChangedSuccess": "Password changed successfully!"
+}

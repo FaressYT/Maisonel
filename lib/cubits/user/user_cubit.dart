@@ -13,8 +13,11 @@ class UserCubit extends Cubit<UserState> {
     emit(UserLoading());
     try {
       final favorites = await ApiService.getFavorites();
-      final creditCards = (await ApiService.getCreditCards())
-          .cast<PaymentMethod>();
+      final creditCardsRaw = await ApiService.getCreditCards();
+      final creditCards = creditCardsRaw
+          .whereType<Map<String, dynamic>>()
+          .map(PaymentMethod.fromJson)
+          .toList();
       emit(UserLoaded(favorites: favorites, creditCards: creditCards));
     } catch (e) {
       emit(UserError(e.toString()));
@@ -37,6 +40,7 @@ class UserCubit extends Cubit<UserState> {
     required String cardNumber,
     required String expirationDate,
     required String cvv,
+    required String cardType,
   }) async {
     emit(UserLoading());
     try {
@@ -45,10 +49,23 @@ class UserCubit extends Cubit<UserState> {
         cardNumber: cardNumber,
         expirationDate: expirationDate,
         cvv: cvv,
+        cardType: cardType,
       );
       await loadUserData(); // Refresh
     } catch (e) {
       emit(UserError(e.toString()));
+    }
+  }
+
+  Future<String> deleteCreditCard(String id) async {
+    emit(UserLoading());
+    try {
+      final message = await ApiService.deleteCreditCard(id);
+      await loadUserData(); // Refresh
+      return message;
+    } catch (e) {
+      emit(UserError(e.toString()));
+      rethrow;
     }
   }
 }

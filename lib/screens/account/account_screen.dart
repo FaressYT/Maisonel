@@ -13,6 +13,8 @@ import '../listings/order_requests_screen.dart';
 import 'favorites_screen.dart';
 import '../../services/api_service.dart';
 import '../../cubits/auth/auth_cubit.dart';
+import '../../cubits/language/language_cubit.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -43,7 +45,9 @@ class _AccountScreenState extends State<AccountScreen> {
           );
         }
 
-        return const Scaffold(body: Center(child: Text('Please log in')));
+        return Scaffold(
+          body: Center(child: Text(AppLocalizations.of(context)!.pleaseLogIn)),
+        );
       },
     );
   }
@@ -65,7 +69,7 @@ class _AccountScreenState extends State<AccountScreen> {
     final phone = user.phone;
     final displayPhone = phone != null && phone.trim().isNotEmpty
         ? phone
-        : 'No phone number';
+        : AppLocalizations.of(context)!.noPhoneNumber;
 
     return Scaffold(
       body: CustomScrollView(
@@ -131,7 +135,7 @@ class _AccountScreenState extends State<AccountScreen> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'Verified',
+                                AppLocalizations.of(context)!.verified,
                                 style: AppTypography.caption.copyWith(
                                   color: AppColors.textWhite,
                                 ),
@@ -153,35 +157,39 @@ class _AccountScreenState extends State<AccountScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Personal Information Section
-                  _buildSectionHeader('Personal Information'),
+                  _buildSectionHeader(
+                    AppLocalizations.of(context)!.personalInformation,
+                  ),
                   _buildSettingCard([
                     _buildInfoTile(
                       icon: Icons.person_outline,
-                      label: 'Name',
+                      label: AppLocalizations.of(context)!.name,
                       value: displayName,
                     ),
                     _buildDivider(),
                     _buildInfoTile(
                       icon: Icons.phone_outlined,
-                      label: 'Phone',
-                      value: displayPhone == 'No phone number'
-                          ? 'Not provided'
+                      label: AppLocalizations.of(context)!.phone,
+                      value:
+                          displayPhone ==
+                              AppLocalizations.of(context)!.noPhoneNumber
+                          ? AppLocalizations.of(context)!.notProvided
                           : displayPhone,
                     ),
                     _buildDivider(),
                     _buildInfoTile(
                       icon: Icons.calendar_today_outlined,
-                      label: 'Birth Date',
+                      label: AppLocalizations.of(context)!.birthDate,
                       value: user.birthDate != null
                           ? "${user.birthDate!.day}/${user.birthDate!.month}/${user.birthDate!.year}"
-                          : 'Not provided',
+                          : AppLocalizations.of(context)!.notProvided,
                     ),
                     if (user.idDocument != null) ...[
                       _buildDivider(),
                       _buildInfoTile(
                         icon: Icons.badge_outlined,
-                        label: 'ID Document',
-                        value: 'View Document',
+                        label: AppLocalizations.of(context)!.idDocument,
+                        value: AppLocalizations.of(context)!.viewDocument,
                         onTap: () {
                           _showIdDocument(context, user.idDocument!);
                         },
@@ -191,11 +199,11 @@ class _AccountScreenState extends State<AccountScreen> {
                   const SizedBox(height: AppSpacing.lg),
 
                   // Account Section
-                  _buildSectionHeader('Account'),
+                  _buildSectionHeader(AppLocalizations.of(context)!.account),
                   _buildSettingCard([
                     _buildSettingTile(
                       icon: Icons.person_outline,
-                      title: 'Edit Profile',
+                      title: AppLocalizations.of(context)!.editProfile,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -208,7 +216,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     _buildDivider(),
                     _buildSettingTile(
                       icon: Icons.favorite_border,
-                      title: 'My Favorites',
+                      title: AppLocalizations.of(context)!.myFavorites,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -221,7 +229,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     _buildDivider(),
                     _buildSettingTile(
                       icon: Icons.lock_outline,
-                      title: 'Change Password',
+                      title: AppLocalizations.of(context)!.changePassword,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -234,7 +242,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     _buildDivider(),
                     _buildSettingTile(
                       icon: Icons.credit_card_outlined,
-                      title: 'Payment Methods',
+                      title: AppLocalizations.of(context)!.paymentMethods,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -247,11 +255,11 @@ class _AccountScreenState extends State<AccountScreen> {
                   ]),
                   const SizedBox(height: AppSpacing.lg),
                   // Hosting Section
-                  _buildSectionHeader('Hosting'),
+                  _buildSectionHeader(AppLocalizations.of(context)!.hosting),
                   _buildSettingCard([
                     _buildSettingTile(
                       icon: Icons.dashboard_outlined,
-                      title: 'Booking Requests',
+                      title: AppLocalizations.of(context)!.bookingRequests,
                       trailing: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: const BoxDecoration(
@@ -279,11 +287,13 @@ class _AccountScreenState extends State<AccountScreen> {
                   ]),
                   const SizedBox(height: AppSpacing.lg),
                   // Preferences Section
-                  _buildSectionHeader('Preferences'),
+                  _buildSectionHeader(
+                    AppLocalizations.of(context)!.preferences,
+                  ),
                   _buildSettingCard([
                     _buildSettingTile(
                       icon: Icons.notifications_outlined,
-                      title: 'Notifications',
+                      title: AppLocalizations.of(context)!.notifications,
                       trailing: Switch(
                         value: true,
                         onChanged: (value) {},
@@ -301,7 +311,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     _buildDivider(),
                     _buildSettingTile(
                       icon: Icons.dark_mode_outlined,
-                      title: 'Dark Mode',
+                      title: AppLocalizations.of(context)!.darkMode,
                       trailing: ValueListenableBuilder<ThemeMode>(
                         valueListenable: ThemeController.instance.themeNotifier,
                         builder: (context, mode, _) {
@@ -316,19 +326,58 @@ class _AccountScreenState extends State<AccountScreen> {
                       ),
                       onTap: null,
                     ),
+                    _buildDivider(),
+                    _buildSettingTile(
+                      icon: Icons.language,
+                      title: AppLocalizations.of(context)!.language,
+                      trailing: BlocBuilder<LanguageCubit, LanguageState>(
+                        builder: (context, state) {
+                          return DropdownButton<String>(
+                            value: state.locale.languageCode,
+                            underline: const SizedBox(),
+                            icon: const Icon(Icons.arrow_drop_down),
+                            items: [
+                              DropdownMenuItem(
+                                value: 'en',
+                                child: Text(
+                                  AppLocalizations.of(context)!.english,
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: 'ar',
+                                child: Text(
+                                  AppLocalizations.of(context)!.arabic,
+                                ),
+                              ),
+                            ],
+                            onChanged: (String? value) {
+                              if (value != null) {
+                                context.read<LanguageCubit>().changeLanguage(
+                                  Locale(value),
+                                );
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    ),
                   ]),
                   const SizedBox(height: AppSpacing.lg),
                   // Support Section
-                  _buildSectionHeader('Support'),
+                  _buildSectionHeader(AppLocalizations.of(context)!.support),
                   _buildSettingCard([
                     _buildDivider(),
                     _buildSettingTile(
                       icon: Icons.privacy_tip_outlined,
-                      title: 'Privacy Policy',
+                      title: AppLocalizations.of(context)!.privacyPolicy,
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Privacy policy coming soon!'),
+                          SnackBar(
+                            content: Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.privacyPolicyComingSoon,
+                            ),
                           ),
                         );
                       },
@@ -336,11 +385,15 @@ class _AccountScreenState extends State<AccountScreen> {
                     _buildDivider(),
                     _buildSettingTile(
                       icon: Icons.description_outlined,
-                      title: 'Terms of Service',
+                      title: AppLocalizations.of(context)!.termsOfService,
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Terms of Service coming soon!'),
+                          SnackBar(
+                            content: Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.termsOfServiceComingSoon,
+                            ),
                           ),
                         );
                       },
@@ -348,7 +401,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     _buildDivider(),
                     _buildSettingTile(
                       icon: Icons.info_outline,
-                      title: 'About',
+                      title: AppLocalizations.of(context)!.about,
                       subtitle: 'Version 1.0.0',
                       onTap: () {
                         _showAboutDialog();
@@ -362,7 +415,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () => _handleLogout(context),
                       icon: const Icon(Icons.logout),
-                      label: const Text('Logout'),
+                      label: Text(AppLocalizations.of(context)!.logout),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Theme.of(context).colorScheme.error,
                         side: BorderSide(
@@ -472,9 +525,9 @@ class _AccountScreenState extends State<AccountScreen> {
                 icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               ),
-              title: const Text(
-                'ID Document',
-                style: TextStyle(color: Colors.white),
+              title: Text(
+                AppLocalizations.of(context)!.idDocument,
+                style: const TextStyle(color: Colors.white),
               ),
             ),
             Expanded(
@@ -527,7 +580,7 @@ class _AccountScreenState extends State<AccountScreen> {
       ),
       children: [
         Text(
-          'Find your perfect home with Maisonel - the premier home rental platform.',
+          AppLocalizations.of(context)!.appDescription,
           style: AppTypography.bodyMedium.copyWith(color: AppColors.textWhite),
         ),
       ],
@@ -538,16 +591,19 @@ class _AccountScreenState extends State<AccountScreen> {
     showDialog(
       context: context,
       builder: (c) => AlertDialog(
-        title: Text('Logout', style: Theme.of(context).textTheme.headlineSmall),
+        title: Text(
+          AppLocalizations.of(context)!.logout,
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         content: Text(
-          'Are you sure you want to logout?',
+          AppLocalizations.of(context)!.logoutConfirmation,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(c).pop(),
             child: Text(
-              'Cancel',
+              AppLocalizations.of(context)!.cancel,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).textTheme.bodySmall?.color,
               ),
@@ -559,7 +615,7 @@ class _AccountScreenState extends State<AccountScreen> {
               context.read<AuthCubit>().logout();
             },
             child: Text(
-              'Logout',
+              AppLocalizations.of(context)!.logout,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.error,
                 fontWeight: FontWeight.bold,

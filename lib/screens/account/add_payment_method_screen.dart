@@ -19,14 +19,31 @@ class _AddPaymentMethodScreenState extends State<AddPaymentMethodScreen> {
   final _cvvController = TextEditingController();
   final _holderNameController = TextEditingController();
   bool _isLoading = false;
+  String _cardType = 'Unknown';
+
+  @override
+  void initState() {
+    super.initState();
+    _cardNumberController.addListener(_handleCardNumberChange);
+  }
 
   @override
   void dispose() {
+    _cardNumberController.removeListener(_handleCardNumberChange);
     _cardNumberController.dispose();
     _expiryController.dispose();
     _cvvController.dispose();
     _holderNameController.dispose();
     super.dispose();
+  }
+
+  void _handleCardNumberChange() {
+    final nextType = _detectCardType(_cardNumberController.text);
+    if (nextType != _cardType) {
+      setState(() {
+        _cardType = nextType;
+      });
+    }
   }
 
   void _addCard() async {
@@ -41,6 +58,7 @@ class _AddPaymentMethodScreenState extends State<AddPaymentMethodScreen> {
         expirationDate: _expiryController.text,
         cvv: _cvvController.text,
         holderName: _holderNameController.text,
+        cardType: _cardType,
       );
 
       if (!mounted) return;
@@ -77,13 +95,21 @@ class _AddPaymentMethodScreenState extends State<AddPaymentMethodScreen> {
                 label: 'Card Number',
                 controller: _cardNumberController,
                 prefixIcon: Icons.credit_card,
+                suffix: _buildCardTypeSuffix(context),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
+                  final raw = value ?? '';
+                  if (raw.isEmpty) {
                     return 'Please enter card number';
                   }
-                  if (value.length < 16) {
-                    return 'Invalid card number';
+                  final digits = _digitsOnly(raw);
+                  final allowedLengths = _allowedLengthsForType(_cardType);
+                  final isLengthOk = allowedLengths.contains(digits.length) ||
+                      (_cardType == 'Unknown' &&
+                          digits.length >= 13 &&
+                          digits.length <= 16);
+                  if (!isLengthOk) {
+                    return 'Invalid card number length';
                   }
                   return null;
                 },
@@ -151,5 +177,85 @@ class _AddPaymentMethodScreenState extends State<AddPaymentMethodScreen> {
         ),
       ),
     );
+  }
+
+  Widget? _buildCardTypeSuffix(BuildContext context) {
+    if (_cardType == 'Unknown') return null;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Text(
+        _cardType,
+        style: Theme.of(
+          context,
+        ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  String _digitsOnly(String value) {
+    final buffer = StringBuffer();
+    for (final codeUnit in value.codeUnits) {
+      if (codeUnit >= 48 && codeUnit <= 57) {
+        buffer.writeCharCode(codeUnit);
+      }
+    }
+    return buffer.toString();
+  }
+
+  List<int> _allowedLengthsForType(String cardType) {
+    switch (cardType) {
+      case 'American Express':
+        return [15];
+      case 'Diners Club':
+      case 'Carte Blanche':
+        return [14];
+      case 'Discover':
+        return [16];
+      case 'EnRoute':
+        return [15];
+      case 'JCB':
+        return [15, 16];
+      case 'Master Card':
+        return [16];
+      case 'Visa':
+        return [13, 16];
+      default:
+        return [];
+    }
+  }
+
+  String _detectCardType(String input) {
+    final digits = _digitsOnly(input);
+    if (digits.isEmpty) return 'Unknown';
+
+    if (_startsWithAny(digits, const ['2014', '2149'])) return 'EnRoute';
+    if (_startsWithAny(digits, const ['2131', '1800'])) return 'JCB';
+    if (_startsWithAny(digits, const ['6011'])) return 'Discover';
+    if (_startsWithAny(digits, const ['34', '37'])) return 'American Express';
+    if (_startsWithRange(digits, 300, 305) || _startsWithAny(digits, const ['36'])) {
+      return 'Diners Club';
+    }
+    if (_startsWithAny(digits, const ['38'])) return 'Carte Blanche';
+    if (_startsWithRange(digits, 51, 55)) return 'Master Card';
+    if (_startsWithAny(digits, const ['4'])) return 'Visa';
+    if (_startsWithAny(digits, const ['3'])) return 'JCB';
+
+    return 'Unknown';
+  }
+
+  bool _startsWithAny(String digits, List<String> prefixes) {
+    for (final prefix in prefixes) {
+      if (digits.startsWith(prefix)) return true;
+    }
+    return false;
+  }
+
+  bool _startsWithRange(String digits, int start, int end) {
+    if (digits.isEmpty) return false;
+    final prefixLength = start.toString().length;
+    if (digits.length < prefixLength) return false;
+    final prefix = int.tryParse(digits.substring(0, prefixLength));
+    if (prefix == null) return false;
+    return prefix >= start && prefix <= end;
   }
 }

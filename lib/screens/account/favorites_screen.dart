@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../widgets/property_card.dart';
 import '../../theme.dart';
@@ -23,7 +24,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My Favorites')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.myFavorites)),
       body: BlocBuilder<UserCubit, UserState>(
         builder: (context, state) {
           if (state is UserLoading) {
@@ -33,11 +34,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Failed to load favorites: ${state.message}'),
+                  Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.failedToLoadFavorites(state.message),
+                  ),
                   const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () => context.read<UserCubit>().loadUserData(),
-                    child: const Text('Retry'),
+                    child: Text(AppLocalizations.of(context)!.retry),
                   ),
                 ],
               ),
@@ -93,11 +98,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No favorites yet',
+            AppLocalizations.of(context)!.noFavoritesYet,
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(height: 8),
-          const Text('Start adding properties to your favorites!'),
+          Text(AppLocalizations.of(context)!.startAddingFavorites),
         ],
       ),
     );

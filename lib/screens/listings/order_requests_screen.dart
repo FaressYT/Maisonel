@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../theme.dart';
@@ -71,7 +72,9 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          approve ? 'Processing approval...' : 'Processing rejection...',
+          approve
+              ? AppLocalizations.of(context)!.processingApproval
+              : AppLocalizations.of(context)!.processingRejection,
         ),
         duration: const Duration(seconds: 1),
       ),
@@ -82,7 +85,7 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Booking Requests'),
+        title: Text(AppLocalizations.of(context)!.bookingRequests),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -99,7 +102,10 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
       listener: (context, state) {
         if (state is OrderError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.error(state.message)),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       },
@@ -130,14 +136,14 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  'Failed to load requests',
+                Text(
+                  AppLocalizations.of(context)!.failedToLoadRequests,
                   style: TextStyle(color: Colors.red),
                 ),
                 TextButton(
                   onPressed: () =>
                       context.read<OrderCubit>().loadOwnerRequests(),
-                  child: const Text('Retry'),
+                  child: Text(AppLocalizations.of(context)!.retry),
                 ),
               ],
             ),
@@ -190,7 +196,8 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          property?.title ?? 'Unknown Property',
+                          property?.title ??
+                              AppLocalizations.of(context)!.unknownProperty,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -219,38 +226,41 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
               // Booking Details
               _buildDetailRow(
                 icon: Icons.calendar_today,
-                label: 'Check-in',
+                label: AppLocalizations.of(context)!.checkIn,
                 value: dateFormat.format(order.checkInDate),
               ),
               const SizedBox(height: 8),
               _buildDetailRow(
                 icon: Icons.calendar_today,
-                label: 'Check-out',
+                label: AppLocalizations.of(context)!.checkOut,
                 value: dateFormat.format(order.checkOutDate),
               ),
               const SizedBox(height: 8),
               _buildDetailRow(
                 icon: Icons.nights_stay,
-                label: 'Nights',
-                value: '${order.numberOfNights} nights',
+                label: AppLocalizations.of(context)!.nights,
+                value: AppLocalizations.of(
+                  context,
+                )!.nightsCount(order.numberOfNights),
               ),
               const SizedBox(height: 8),
               _buildDetailRow(
                 icon: Icons.people,
-                label: 'Guests',
-                value:
-                    '${order.guests} ${order.guests == 1 ? 'Guest' : 'Guests'}',
+                label: AppLocalizations.of(context)!.guestLabel,
+                value: AppLocalizations.of(context)!.guestCount(order.guests),
               ),
               const SizedBox(height: 8),
               _buildDetailRow(
                 icon: Icons.payment,
-                label: 'Payment',
-                value: order.paymentMethod ?? 'Not specified',
+                label: AppLocalizations.of(context)!.payment,
+                value:
+                    order.paymentMethod ??
+                    AppLocalizations.of(context)!.notSpecified,
               ),
               const SizedBox(height: 8),
               _buildDetailRow(
                 icon: Icons.access_time,
-                label: 'Booked on',
+                label: AppLocalizations.of(context)!.bookedOn,
                 value: dateFormat.format(order.bookingDate),
               ),
 
@@ -260,8 +270,8 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Total Amount',
+                  Text(
+                    AppLocalizations.of(context)!.totalAmount,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Text(
@@ -288,7 +298,7 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                           foregroundColor: Colors.red,
                           side: const BorderSide(color: Colors.red),
                         ),
-                        child: const Text('Reject'),
+                        child: Text(AppLocalizations.of(context)!.reject),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -301,7 +311,7 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                           ).colorScheme.primary,
                           foregroundColor: Colors.white,
                         ),
-                        child: const Text('Approve'),
+                        child: Text(AppLocalizations.of(context)!.approve),
                       ),
                     ),
                   ],
@@ -370,7 +380,7 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
         children: [
           Icon(Icons.done_all, size: 64, color: Colors.grey[400]),
           const SizedBox(height: AppSpacing.md),
-          const Text('No pending requests found'),
+          Text(AppLocalizations.of(context)!.noPendingRequests),
         ],
       ),
     );

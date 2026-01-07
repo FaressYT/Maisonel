@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../theme.dart';
 import '../../models/property.dart';
@@ -25,7 +26,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Listings'),
+        title: Text(AppLocalizations.of(context)!.myListings),
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
@@ -39,7 +40,9 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
           if (state is ApartmentLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is ApartmentError) {
-            return Center(child: Text('Error: ${state.message}'));
+            return Center(
+              child: Text(AppLocalizations.of(context)!.error(state.message)),
+            );
           } else if (state is ApartmentLoaded) {
             final myListings = state.ownedApartments;
             return myListings.isEmpty
@@ -79,7 +82,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
         },
         backgroundColor: Theme.of(context).colorScheme.primary,
         icon: const Icon(Icons.add),
-        label: const Text('Add Listing'),
+        label: Text(AppLocalizations.of(context)!.addListing),
       ),
     );
   }
@@ -135,8 +138,8 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                         const SizedBox(width: 4),
                         Text(
                           property.approvalStatus == -1
-                              ? 'Rejected'
-                              : 'Not Approved Yet',
+                              ? AppLocalizations.of(context)!.rejected
+                              : AppLocalizations.of(context)!.notApprovedYet,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
@@ -166,7 +169,9 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                       Icon(Icons.visibility, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
-                        '${(property.reviewCount * 12).toInt()} views',
+                        AppLocalizations.of(
+                          context,
+                        )!.viewsCount((property.reviewCount * 12).toInt()),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -226,20 +231,22 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Listing'),
-        content: Text('Are you sure you want to delete "${property.title}"?'),
+        title: Text(AppLocalizations.of(context)!.deleteListing),
+        content: Text(
+          AppLocalizations.of(context)!.deleteListingConfirm(property.title),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               context.read<ApartmentCubit>().deleteApartment(property.id);
             },
-            child: const Text(
-              'Delete',
+            child: Text(
+              AppLocalizations.of(context)!.delete,
               style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
             ),
           ),
@@ -260,10 +267,10 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No listings yet',
+            AppLocalizations.of(context)!.noListingsYet,
             style: Theme.of(context).textTheme.headlineMedium,
           ),
-          const Text('Start adding your properties to reach customers'),
+          Text(AppLocalizations.of(context)!.startAddingProperties),
         ],
       ),
     );

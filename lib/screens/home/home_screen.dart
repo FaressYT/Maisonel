@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 import 'package:maisonel_v02/services/api_service.dart';
 import '../../theme.dart';
 import '../../models/property.dart';
@@ -59,10 +60,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Error: ${snapshot.error}'),
+                      Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.error(snapshot.error.toString()),
+                      ),
                       ElevatedButton(
                         onPressed: _handleRefresh,
-                        child: const Text('Retry'),
+                        child: Text(AppLocalizations.of(context)!.retry),
                       ),
                     ],
                   ),
@@ -117,13 +122,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         // Featured Properties Section
                         if (featuredProperties.isNotEmpty) ...[
-                          _buildSectionHeader('Featured'),
+                          _buildSectionHeader(
+                            AppLocalizations.of(context)!.featured,
+                          ),
                           const SizedBox(height: AppSpacing.sm),
                           _buildHorizontalList(featuredProperties),
                           const SizedBox(height: AppSpacing.lg),
+                          const SizedBox(height: AppSpacing.lg),
                         ],
 
-                        _buildSectionHeader('Popular Properties'),
+                        _buildSectionHeader(
+                          AppLocalizations.of(context)!.popularProperties,
+                        ),
                         const SizedBox(height: AppSpacing.sm),
                       ],
                     ),
@@ -154,6 +164,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String _getLocalizedCategoryName(String category) {
+    switch (category) {
+      case 'All':
+        return AppLocalizations.of(context)!.all;
+      case 'Apartment':
+        return AppLocalizations.of(context)!.apartment;
+      case 'House':
+        return AppLocalizations.of(context)!.house;
+      case 'Villa':
+        return AppLocalizations.of(context)!.villa;
+      case 'Studio':
+        return AppLocalizations.of(context)!.studio;
+      default:
+        return category;
+    }
+  }
+
   // --- دوال مساعدة لتنظيف الكود (Helper Methods) ---
 
   Widget _buildCategoryList() {
@@ -169,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: FilterChip(
-              label: Text(category),
+              label: Text(_getLocalizedCategoryName(category)),
               selected: isSelected,
               onSelected: (selected) =>
                   setState(() => _selectedCategory = category),
@@ -239,14 +266,14 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                'Hello, ${_currentUser?.name.split(' ').first ?? 'Guest'} 👋',
+                '${AppLocalizations.of(context)!.hello(_currentUser?.name.split(' ').first ?? AppLocalizations.of(context)!.guest)} 👋',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: AppColors.textWhite,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Find your dream home',
+                AppLocalizations.of(context)!.findDreamHome,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.textWhite.withOpacity(0.9),
                 ),
@@ -270,12 +297,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No properties found',
+            AppLocalizations.of(context)!.noPropertiesFound,
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Check back later for new listings or refresh the page',
+          Text(
+            AppLocalizations.of(context)!.checkBackLater,
             textAlign: TextAlign.center,
           ),
         ],

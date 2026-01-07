@@ -6,6 +6,7 @@ import '../../widgets/custom_button.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import 'signup_screen.dart';
 import '../main_screen.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -90,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
-                        'Find your perfect home',
+                        AppLocalizations.of(context)!.findDreamHome,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: AppColors.textWhite.withOpacity(0.9),
                         ),
@@ -110,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Welcome Back',
+                                AppLocalizations.of(context)!.welcomeBack,
                                 style: Theme.of(
                                   context,
                                 ).textTheme.headlineMedium,
@@ -118,20 +119,28 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(height: AppSpacing.md),
                               // Email Field
                               CustomTextField(
-                                label: 'Phone',
-                                hint: 'Enter your phone number',
+                                label: AppLocalizations.of(context)!.phone,
+                                hint: AppLocalizations.of(
+                                  context,
+                                )!.enterPhoneNumber,
                                 type: TextFieldType.phone,
                                 controller: _phoneController,
                                 prefixIcon: Icons.phone_outlined,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter your phone number';
+                                    return AppLocalizations.of(
+                                      context,
+                                    )!.pleaseEnterPhoneNumber;
                                   }
                                   if (!value.startsWith('09')) {
-                                    return 'Please enter a valid number start with 09';
+                                    return AppLocalizations.of(
+                                      context,
+                                    )!.validPhoneStart09;
                                   }
                                   if (value.length < 9) {
-                                    return 'Please enter a valid phone number';
+                                    return AppLocalizations.of(
+                                      context,
+                                    )!.validPhone;
                                   }
                                   return null;
                                 },
@@ -139,17 +148,23 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(height: AppSpacing.md),
                               // Password Field
                               CustomTextField(
-                                label: 'Password',
-                                hint: 'Enter your password',
+                                label: AppLocalizations.of(context)!.password,
+                                hint: AppLocalizations.of(
+                                  context,
+                                )!.enterPassword,
                                 type: TextFieldType.password,
                                 controller: _passwordController,
                                 prefixIcon: Icons.lock_outline,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter your password';
+                                    return AppLocalizations.of(
+                                      context,
+                                    )!.pleaseEnterPassword;
                                   }
                                   if (value.length < 6) {
-                                    return 'Password must be at least 6 characters';
+                                    return AppLocalizations.of(
+                                      context,
+                                    )!.passwordLength;
                                   }
                                   return null;
                                 },
@@ -163,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(height: AppSpacing.lg),
                               // Login Button
                               CustomButton(
-                                text: 'Login',
+                                text: AppLocalizations.of(context)!.login,
                                 onPressed: _handleLogin,
                                 isLoading: isLoading,
                               ),
@@ -173,7 +188,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    "Don't have an account? ",
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.dontHaveAccount,
                                     style: Theme.of(
                                       context,
                                     ).textTheme.bodyMedium,
@@ -188,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       );
                                     },
                                     child: Text(
-                                      'Sign Up',
+                                      AppLocalizations.of(context)!.signUp,
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium

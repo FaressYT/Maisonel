@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 import '../../theme.dart';
 import '../../models/property.dart';
 import '../../services/api_service.dart';
@@ -25,9 +26,9 @@ class _LeaveReviewScreenState extends State<LeaveReviewScreen> {
 
   void _submitReview() async {
     if (_rating == 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a rating')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.selectRating)),
+      );
       return;
     }
 
@@ -51,7 +52,9 @@ class _LeaveReviewScreenState extends State<LeaveReviewScreen> {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Review submitted successfully!')),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.reviewSubmitted),
+          ),
         );
         Navigator.pop(context);
       }
@@ -60,9 +63,13 @@ class _LeaveReviewScreenState extends State<LeaveReviewScreen> {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to submit review: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.reviewFailed(e.toString()),
+            ),
+          ),
+        );
       }
     }
   }
@@ -70,7 +77,7 @@ class _LeaveReviewScreenState extends State<LeaveReviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Leave a Review')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.leaveReview)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
@@ -117,8 +124,8 @@ class _LeaveReviewScreenState extends State<LeaveReviewScreen> {
             const SizedBox(height: AppSpacing.xl),
 
             // Rating Stars
-            const Text(
-              'How was your stay?',
+            Text(
+              AppLocalizations.of(context)!.howWasStay,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -147,7 +154,7 @@ class _LeaveReviewScreenState extends State<LeaveReviewScreen> {
               controller: _commentController,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: 'Share your experience...',
+                hintText: AppLocalizations.of(context)!.shareExperience,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
@@ -158,7 +165,7 @@ class _LeaveReviewScreenState extends State<LeaveReviewScreen> {
 
             const SizedBox(height: AppSpacing.xl),
             CustomButton(
-              text: 'Submit Review',
+              text: AppLocalizations.of(context)!.submitReview,
               onPressed: _submitReview,
               isLoading: _isLoading,
             ),

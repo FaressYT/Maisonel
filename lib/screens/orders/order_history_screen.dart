@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../theme.dart';
 import '../../models/order.dart';
@@ -110,27 +111,38 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 ),
               ),
               Text(
-                'Order Details #${order.id}',
+                AppLocalizations.of(context)!.orderDetails(order.id),
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const Divider(height: 32),
               _buildDetailRow(
-                'Property',
-                property?.title ?? 'Unknown Property',
+                AppLocalizations.of(context)!.propertyLabel,
+                property?.title ??
+                    AppLocalizations.of(context)!.unknownProperty,
               ),
               _buildDetailRow(
-                'Location',
-                property?.location ?? 'Unknown Location',
+                AppLocalizations.of(context)!.location,
+                property?.location ??
+                    AppLocalizations.of(context)!.unknownLocation,
               ),
-              _buildDetailRow('Status', order.statusText),
-              _buildDetailRow('Nights', order.numberOfNights.toString()),
-              _buildDetailRow('Guests', order.guests.toString()),
+              _buildDetailRow(
+                AppLocalizations.of(context)!.status,
+                order.statusText,
+              ), // StatusText localized?
+              _buildDetailRow(
+                AppLocalizations.of(context)!.nights,
+                order.numberOfNights.toString(),
+              ),
+              _buildDetailRow(
+                AppLocalizations.of(context)!.guestLabel,
+                order.guests.toString(),
+              ),
               const Divider(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Total Paid',
+                  Text(
+                    AppLocalizations.of(context)!.totalPaid,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Text(
@@ -160,7 +172,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         ),
                       );
                     },
-                    child: const Text('Leave a Review'),
+                    child: Text(AppLocalizations.of(context)!.leaveReview),
                   ),
                 ),
               if (order.status == OrderStatus.pending ||
@@ -175,8 +187,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         context.read<OrderCubit>().cancelOrder(order.id);
                         Navigator.pop(context); // Close details
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Cancellation request sent'),
+                          SnackBar(
+                            content: Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.cancellationRequestSent,
+                            ),
                           ),
                         );
                       },
@@ -184,7 +200,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         foregroundColor: Colors.red,
                         side: const BorderSide(color: Colors.red),
                       ),
-                      child: const Text('Cancel Booking'),
+                      child: Text(AppLocalizations.of(context)!.cancelBooking),
                     ),
                   ),
                 ),
@@ -218,7 +234,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Order History'),
+        title: Text(AppLocalizations.of(context)!.orderHistory),
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
@@ -251,7 +267,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             return Padding(
               padding: const EdgeInsets.only(right: AppSpacing.sm),
               child: FilterChip(
-                label: Text(status),
+                label: Text(_getLocalizedStatus(status)),
                 selected: isSelected,
                 onSelected: (selected) {
                   setState(() => _filterStatus = status);
@@ -281,7 +297,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () => context.read<OrderCubit>().loadUserOrders(),
-                  child: const Text('Retry'),
+                  child: Text(AppLocalizations.of(context)!.retry),
                 ),
               ],
             ),
@@ -352,7 +368,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 ),
               ),
             ListTile(
-              title: Text(property?.title ?? 'Unknown Property'),
+              title: Text(
+                property?.title ??
+                    AppLocalizations.of(context)!.unknownProperty,
+              ),
               subtitle: Row(
                 children: [
                   Container(
@@ -389,10 +408,23 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(child: Text('No orders found for $_filterStatus'));
+    return Center(
+      child: Text(
+        AppLocalizations.of(context)!.noOrdersFoundForStatus(_filterStatus),
+      ),
+    );
   }
 
   Color _getStatusColor(OrderStatus status) {
     return Order.getStatusColor(status);
+  }
+
+  String _getLocalizedStatus(String status) {
+    if (status == 'All') return AppLocalizations.of(context)!.all;
+    if (status == 'Pending') return AppLocalizations.of(context)!.pending;
+    if (status == 'Confirmed') return AppLocalizations.of(context)!.confirmed;
+    if (status == 'Completed') return AppLocalizations.of(context)!.completed;
+    if (status == 'Cancelled') return AppLocalizations.of(context)!.cancelled;
+    return status;
   }
 }

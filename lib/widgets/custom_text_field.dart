@@ -15,6 +15,8 @@ class CustomTextField extends StatefulWidget {
   final VoidCallback? onTap;
   final TextInputType? keyboardType;
   final bool? obscureText;
+  final Widget? suffix;
+  final ValueChanged<String>? onChanged;
 
   const CustomTextField({
     super.key,
@@ -29,6 +31,8 @@ class CustomTextField extends StatefulWidget {
     this.onTap,
     this.keyboardType,
     this.obscureText,
+    this.suffix,
+    this.onChanged,
   });
 
   @override
@@ -60,6 +64,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           readOnly: widget.readOnly,
           maxLines: widget.type == TextFieldType.password ? 1 : widget.maxLines,
           onTap: widget.onTap,
+          onChanged: widget.onChanged,
           decoration: InputDecoration(
             hintText: widget.hint ?? widget.label,
             hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -73,7 +78,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
                         Colors.grey,
                   )
                 : null,
-            suffixIcon: widget.type == TextFieldType.password
+            suffix: widget.suffix,
+            suffixIcon: widget.suffix == null &&
+                    widget.type == TextFieldType.password
                 ? IconButton(
                     icon: Icon(
                       _obscureText ? Icons.visibility_off : Icons.visibility,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/property.dart';
 import '../../theme.dart';
@@ -81,8 +82,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         });
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Failed to update favorite'),
+                            SnackBar(
+                              content: Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.failedToUpdateFavorite,
+                              ),
                             ),
                           );
                         }
@@ -170,7 +175,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                 ),
                           ),
                           Text(
-                            '/ month',
+                            AppLocalizations.of(context)!.perMonth,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -184,23 +189,29 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       _buildFeatureChip(
                         context,
                         Icons.bed,
-                        '${widget.property.bedrooms} Bed',
+                        AppLocalizations.of(
+                          context,
+                        )!.bedroomsCount(widget.property.bedrooms),
                       ),
                       _buildFeatureChip(
                         context,
                         Icons.bathroom,
-                        '${widget.property.bathrooms} Bath',
+                        AppLocalizations.of(
+                          context,
+                        )!.bathroomsCount(widget.property.bathrooms),
                       ),
                       _buildFeatureChip(
                         context,
                         Icons.square_foot,
-                        '${widget.property.area} m²',
+                        AppLocalizations.of(
+                          context,
+                        )!.areaSqm(widget.property.area),
                       ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   Text(
-                    'Description',
+                    AppLocalizations.of(context)!.descriptionTitle,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -214,7 +225,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   Text(
-                    'Amenities',
+                    AppLocalizations.of(context)!.amenities,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -263,7 +274,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 ),
               );
             },
-            child: const Text('Book Now'),
+            child: Text(AppLocalizations.of(context)!.bookNow),
           ),
         ),
       ),

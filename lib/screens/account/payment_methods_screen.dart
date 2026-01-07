@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../theme.dart';
 import '../../cubits/user/user_cubit.dart';
+import '../../models/payment_method.dart';
 import 'add_payment_method_screen.dart';
 
 class PaymentMethodsScreen extends StatefulWidget {
@@ -58,7 +59,19 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               ),
             );
           } else if (state is UserLoaded) {
-            final paymentMethods = state.creditCards;
+            final rawMethods = state.creditCards as List;
+            final paymentMethods = rawMethods
+                .map((method) {
+                  if (method is PaymentMethod) return method;
+                  if (method is Map) {
+                    return PaymentMethod.fromJson(
+                      Map<String, dynamic>.from(method),
+                    );
+                  }
+                  return null;
+                })
+                .whereType<PaymentMethod>()
+                .toList();
             return paymentMethods.isEmpty
                 ? Center(
                     child: Column(
@@ -95,6 +108,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text('Expires ${method.expiryDate}'),
+                          onTap: () => _showCardDetails(context, method),
                         ),
                       );
                     },
@@ -104,5 +118,109 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _showCardDetails(
+    BuildContext context,
+    PaymentMethod method,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Card Details'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _detailRow('Card Type', method.cardType),
+              _detailRow(
+                'Number',
+                method.cardNumber.isNotEmpty
+                    ? method.cardNumber
+                    : '•••• ${method.lastFourDigits}',
+              ),
+              _detailRow('Expiry', method.expiryDate),
+              _detailRow('Holder', method.holderName),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Close'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final confirmed = await _confirmDelete(dialogContext);
+                if (!confirmed) return;
+                if (!dialogContext.mounted) return;
+                Navigator.pop(dialogContext);
+                try {
+                  final message = await context
+                      .read<UserCubit>()
+                      .deleteCreditCard(method.id);
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                } catch (e) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete card: $e')),
+                  );
+                }
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 90,
+            child: Text(
+              '$label:',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Expanded(child: Text(value.isEmpty ? '-' : value)),
+        ],
+      ),
+    );
+  }
+
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete card?'),
+          content: const Text(
+            'Are you sure you want to delete this credit card?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+    return result ?? false;
   }
 }

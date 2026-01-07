@@ -7,6 +7,7 @@ import '../../cubits/auth/auth_cubit.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:typed_data';
+import 'package:maisonel_v02/l10n/app_localizations.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -78,7 +79,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!_acceptTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please accept the terms and conditions'),
+          content: Text(AppLocalizations.of(context)!.acceptTerms),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -88,13 +89,15 @@ class _SignupScreenState extends State<SignupScreen> {
     if (_formKey.currentState!.validate()) {
       if (_profileImage == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a profile picture')),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.selectProfilePicture),
+          ),
         );
         return;
       }
       if (_idImage == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please upload your ID photo')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.uploadIdPhoto)),
         );
         return;
       }
@@ -120,8 +123,8 @@ class _SignupScreenState extends State<SignupScreen> {
           if (state is AuthAuthenticated) {
             // Registration successful, show success message and return to login
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Account created successfully! Please login.'),
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.accountCreated),
                 backgroundColor: Colors.green,
               ),
             );
@@ -188,7 +191,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             const SizedBox(height: AppSpacing.lg),
                             Text(
-                              'Create Account',
+                              AppLocalizations.of(context)!.createAccount,
                               style: Theme.of(context).textTheme.displaySmall
                                   ?.copyWith(
                                     color: AppColors.textWhite,
@@ -197,7 +200,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             Text(
-                              'Join Maisonel today',
+                              AppLocalizations.of(context)!.joinMaisonel,
                               style: Theme.of(context).textTheme.bodyLarge
                                   ?.copyWith(
                                     color: AppColors.textWhite.withOpacity(0.9),
@@ -277,14 +280,20 @@ class _SignupScreenState extends State<SignupScreen> {
                                       children: [
                                         Expanded(
                                           child: CustomTextField(
-                                            label: 'First Name',
-                                            hint: 'First name',
+                                            label: AppLocalizations.of(
+                                              context,
+                                            )!.firstName,
+                                            hint: AppLocalizations.of(
+                                              context,
+                                            )!.firstName,
                                             controller: _firstNameController,
                                             prefixIcon: Icons.person_outline,
                                             validator: (value) {
                                               if (value == null ||
                                                   value.isEmpty) {
-                                                return 'Required';
+                                                return AppLocalizations.of(
+                                                  context,
+                                                )!.required;
                                               }
                                               return null;
                                             },
@@ -293,14 +302,20 @@ class _SignupScreenState extends State<SignupScreen> {
                                         const SizedBox(width: AppSpacing.sm),
                                         Expanded(
                                           child: CustomTextField(
-                                            label: 'Last Name',
-                                            hint: 'Last name',
+                                            label: AppLocalizations.of(
+                                              context,
+                                            )!.lastName,
+                                            hint: AppLocalizations.of(
+                                              context,
+                                            )!.lastName,
                                             controller: _lastNameController,
                                             prefixIcon: Icons.person_outline,
                                             validator: (value) {
                                               if (value == null ||
                                                   value.isEmpty) {
-                                                return 'Required';
+                                                return AppLocalizations.of(
+                                                  context,
+                                                )!.required;
                                               }
                                               return null;
                                             },
@@ -311,15 +326,21 @@ class _SignupScreenState extends State<SignupScreen> {
                                     const SizedBox(height: AppSpacing.md),
                                     // Birthdate Field
                                     CustomTextField(
-                                      label: 'Birthdate',
-                                      hint: 'Select your birthdate',
+                                      label: AppLocalizations.of(
+                                        context,
+                                      )!.birthdate,
+                                      hint: AppLocalizations.of(
+                                        context,
+                                      )!.selectBirthdate,
                                       controller: _birthdateController,
                                       prefixIcon: Icons.calendar_today,
                                       readOnly: true,
                                       onTap: () => _selectDate(context),
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
-                                          return 'Please select your birthdate';
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.pleaseSelectBirthdate;
                                         }
                                         return null;
                                       },
@@ -327,20 +348,30 @@ class _SignupScreenState extends State<SignupScreen> {
                                     const SizedBox(height: AppSpacing.md),
                                     // Email Field
                                     CustomTextField(
-                                      label: 'Phone Number',
-                                      hint: 'Enter your Phone Number',
+                                      label: AppLocalizations.of(
+                                        context,
+                                      )!.phone,
+                                      hint: AppLocalizations.of(
+                                        context,
+                                      )!.enterPhoneNumber,
                                       type: TextFieldType.phone,
                                       controller: _phoneController,
                                       prefixIcon: Icons.phone_outlined,
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
-                                          return 'Please enter your phone';
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.pleaseEnterPhoneNumber;
                                         }
                                         if (!value.startsWith('09')) {
-                                          return 'Please enter a valid number start with 09';
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.validPhoneStart09;
                                         }
                                         if (value.length < 9) {
-                                          return 'Please enter a valid number';
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.validPhone;
                                         }
 
                                         return null;
@@ -349,17 +380,25 @@ class _SignupScreenState extends State<SignupScreen> {
                                     const SizedBox(height: AppSpacing.md),
                                     // Password Field
                                     CustomTextField(
-                                      label: 'Password',
-                                      hint: 'Create a password',
+                                      label: AppLocalizations.of(
+                                        context,
+                                      )!.password,
+                                      hint: AppLocalizations.of(
+                                        context,
+                                      )!.enterPassword,
                                       type: TextFieldType.password,
                                       controller: _passwordController,
                                       prefixIcon: Icons.lock_outline,
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
-                                          return 'Please enter a password';
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.pleaseEnterPassword;
                                         }
                                         if (value.length < 6) {
-                                          return 'Password must be at least 6 characters';
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.passwordLength;
                                         }
                                         return null;
                                       },
@@ -367,17 +406,25 @@ class _SignupScreenState extends State<SignupScreen> {
                                     const SizedBox(height: AppSpacing.md),
                                     // Confirm Password Field
                                     CustomTextField(
-                                      label: 'Confirm Password',
-                                      hint: 'Re-enter your password',
+                                      label: AppLocalizations.of(
+                                        context,
+                                      )!.confirmPassword,
+                                      hint: AppLocalizations.of(
+                                        context,
+                                      )!.reEnterPassword,
                                       type: TextFieldType.password,
                                       controller: _confirmPasswordController,
                                       prefixIcon: Icons.lock_outline,
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
-                                          return 'Please confirm your password';
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.pleaseConfirmPassword;
                                         }
                                         if (value.length < 6) {
-                                          return 'Password must be at least 6 characters';
+                                          return AppLocalizations.of(
+                                            context,
+                                          )!.passwordLength;
                                         }
                                         return null;
                                       },
@@ -385,7 +432,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                     const SizedBox(height: AppSpacing.md),
                                     // ID Photo Upload
                                     Text(
-                                      'ID Photo',
+                                      AppLocalizations.of(context)!.idPhoto,
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
@@ -432,7 +479,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                                     height: AppSpacing.xs,
                                                   ),
                                                   Text(
-                                                    'Tap to upload ID photo',
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    )!.tapToUploadId,
                                                     style: TextStyle(
                                                       color: Colors.grey[600],
                                                     ),
@@ -467,7 +516,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                           child: Wrap(
                                             children: [
                                               Text(
-                                                'I agree to the ',
+                                                AppLocalizations.of(
+                                                  context,
+                                                )!.agreeTo,
                                                 style: Theme.of(
                                                   context,
                                                 ).textTheme.bodySmall,
@@ -477,7 +528,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                                   // TODO: Show terms and conditions
                                                 },
                                                 child: Text(
-                                                  'Terms and Conditions',
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.termsOfService,
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .bodySmall
@@ -498,7 +551,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                     const SizedBox(height: AppSpacing.lg),
                                     // Sign Up Button
                                     CustomButton(
-                                      text: 'Sign Up',
+                                      text: AppLocalizations.of(
+                                        context,
+                                      )!.signUp,
                                       onPressed: _handleSignup,
                                       isLoading: isLoading,
                                     ),
@@ -509,7 +564,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                           MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          'Already have an account? ',
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.alreadyHaveAccount,
                                           style: Theme.of(
                                             context,
                                           ).textTheme.bodyMedium,
@@ -519,7 +576,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                             Navigator.of(context).pop();
                                           },
                                           child: Text(
-                                            'Login',
+                                            AppLocalizations.of(context)!.login,
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .bodyMedium

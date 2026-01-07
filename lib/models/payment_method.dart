@@ -1,6 +1,7 @@
 class PaymentMethod {
   final String id;
   final String cardType; // 'Visa', 'MasterCard', etc.
+  final String cardNumber;
   final String lastFourDigits;
   final String expiryDate; // MM/YY
   final String holderName;
@@ -9,6 +10,7 @@ class PaymentMethod {
   PaymentMethod({
     required this.id,
     required this.cardType,
+    required this.cardNumber,
     required this.lastFourDigits,
     required this.expiryDate,
     required this.holderName,
@@ -32,6 +34,7 @@ class PaymentMethod {
       PaymentMethod(
         id: 'pm1',
         cardType: 'Visa',
+        cardNumber: '4242424242424242',
         lastFourDigits: '4242',
         expiryDate: '12/25',
         holderName: 'John Doe',
@@ -40,6 +43,7 @@ class PaymentMethod {
       PaymentMethod(
         id: 'pm2',
         cardType: 'MasterCard',
+        cardNumber: '5555555555554444',
         lastFourDigits: '8888',
         expiryDate: '09/24',
         holderName: 'John Doe',
@@ -49,13 +53,40 @@ class PaymentMethod {
   }
 
   factory PaymentMethod.fromJson(Map<String, dynamic> json) {
+    final rawNumber = json['card_number']?.toString() ?? '';
+    final lastFour = rawNumber.length >= 4
+        ? rawNumber.substring(rawNumber.length - 4)
+        : (json['last_four_digits']?.toString() ?? '****');
+    final expiryRaw =
+        json['expiration_date']?.toString() ?? json['expiry_date']?.toString();
+    final expiryDate = _formatExpiry(expiryRaw);
+
     return PaymentMethod(
       id: json['id']?.toString() ?? '',
-      cardType: json['type'] ?? 'Unknown',
-      lastFourDigits: json['last_four_digits']?.toString() ?? '****',
-      expiryDate: json['expiry_date'] ?? '',
-      holderName: json['holder_name'] ?? '',
+      cardType:
+          json['card_type']?.toString() ?? json['type']?.toString() ?? 'Unknown',
+      cardNumber: rawNumber,
+      lastFourDigits: lastFour,
+      expiryDate: expiryDate,
+      holderName:
+          json['card_holder_name']?.toString() ??
+          json['holder_name']?.toString() ??
+          '',
       isDefault: json['is_default'] == true || json['is_default'] == 1,
     );
+  }
+
+  static String _formatExpiry(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return '';
+    if (raw.contains('/')) return raw;
+    final parts = raw.split('-');
+    if (parts.length >= 2) {
+      final year = parts[0];
+      final month = parts[1];
+      if (year.length == 4 && month.length == 2) {
+        return '$month/${year.substring(2)}';
+      }
+    }
+    return raw;
   }
 }
