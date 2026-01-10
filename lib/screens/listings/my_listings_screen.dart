@@ -6,6 +6,7 @@ import '../../models/property.dart';
 import '../../widgets/property_card.dart';
 import '../../cubits/apartment/apartment_cubit.dart';
 import 'add_edit_listing_screen.dart';
+import 'property_details_screen.dart';
 
 class MyListingsScreen extends StatefulWidget {
   const MyListingsScreen({super.key});
@@ -102,7 +103,17 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                 property: property,
                 showFavoriteButton: false,
                 onTap: () {
-                  // Navigate to details if needed
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          PropertyDetailsScreen(property: property),
+                    ),
+                  ).then((_) {
+                    if (mounted) {
+                      context.read<ApartmentCubit>().loadApartments();
+                    }
+                  });
                 },
               ),
               if (property.approvalStatus != 1)
@@ -171,7 +182,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                       Text(
                         AppLocalizations.of(
                           context,
-                        )!.viewsCount((property.reviewCount * 12).toInt()),
+                        )!.viewsCount(property.viewCount),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],

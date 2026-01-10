@@ -385,7 +385,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get description => 'الوصف';
 
   @override
-  String get pricePerNight => 'السعر لليلة';
+  String get pricePerNight => 'السعر للشهر';
 
   @override
   String get selectType => 'اختر النوع';
@@ -465,6 +465,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get selectStartDate => 'اختر تاريخ البدء';
+
+  @override
+  String get dateUnavailable => 'نطاق التاريخ المحدد يحتوي على أيام غير متاحة';
 
   @override
   String get monthsDurationLabel => 'المدة (أشهر)';

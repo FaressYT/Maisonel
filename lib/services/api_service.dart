@@ -13,6 +13,13 @@ class LoginResult {
   const LoginResult({required this.user, this.message});
 }
 
+class RatingSummary {
+  final double averageRating;
+  final int ratingsCount;
+
+  const RatingSummary({required this.averageRating, required this.ratingsCount});
+}
+
 class ApiService {
   static const String _androidBaseUrl = 'http://10.0.2.2:8000/api';
   static const String _iosBaseUrl = 'http://127.0.0.1:8000/api';
@@ -37,6 +44,38 @@ class ApiService {
     if (path.startsWith('http') || path.startsWith('https')) return path;
     if (path.startsWith('file://')) return path;
     return '$storageUrl/$path';
+  }
+
+  static double _toDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
+  static int _toInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString()) ?? 0;
+  }
+
+  static Future<List<Property>> _attachRatings(
+    List<Property> properties,
+  ) async {
+    if (properties.isEmpty) return properties;
+    final futures = properties.map((property) async {
+      try {
+        final summary = await getApartmentRatingSummary(property.id);
+        if (summary == null) return property;
+        return property.withRating(
+          rating: summary.averageRating,
+          reviewCount: summary.ratingsCount,
+        );
+      } catch (e) {
+        debugPrint('Rating summary failed for ${property.id}: $e');
+        return property;
+      }
+    }).toList();
+    return Future.wait(futures);
   }
 
   static Future<LoginResult> login(String phone, String password) async {
@@ -200,7 +239,9 @@ class ApiService {
         } else {
           throw Exception('Unexpected response format');
         }
-        return list.map((model) => Property.fromJson(model)).toList();
+        final properties =
+            list.map((model) => Property.fromJson(model)).toList();
+        return await _attachRatings(properties);
       } else {
         throw Exception('Failed to load properties: ${response.statusCode}');
       }
@@ -232,7 +273,9 @@ class ApiService {
         } else {
           throw Exception('Unexpected response format');
         }
-        return list.map((model) => Property.fromJson(model)).toList();
+        final properties =
+            list.map((model) => Property.fromJson(model)).toList();
+        return await _attachRatings(properties);
       } else {
         throw Exception('Failed to load properties: ${response.statusCode}');
       }
@@ -253,7 +296,7 @@ class ApiService {
     required int bathrooms,
     required String type,
     required List<XFile> images,
-    List<String> amenities = const [],
+    required List<String> amenities,
   }) async {
     try {
       var request = http.MultipartRequest(
@@ -276,13 +319,18 @@ class ApiService {
         'bedrooms': bedrooms.toString(),
         'bathrooms': bathrooms.toString(),
         'type': type,
-        'amenities': jsonEncode(amenities),
       });
+
+      for (var amenity in amenities) {
+        request.files.add(
+          http.MultipartFile.fromString('amenities[]', amenity),
+        );
+      }
 
       for (var image in images) {
         request.files.add(
           await http.MultipartFile.fromPath(
-            'images[]',
+            'image_url[]',
             image.path,
             filename: image.name,
           ),
@@ -336,14 +384,20 @@ class ApiService {
       if (bedrooms != null) request.fields['bedrooms'] = bedrooms.toString();
       if (bathrooms != null) request.fields['bathrooms'] = bathrooms.toString();
       if (city != null) request.fields['city'] = city;
-      if (amenities != null)
-        request.fields['amenities'] = jsonEncode(amenities);
+      request.fields['_method'] = 'POST';
+      if (amenities != null) {
+        for (var amenity in amenities) {
+          request.files.add(
+            http.MultipartFile.fromString('amenities[]', amenity),
+          );
+        }
+      }
 
       if (images != null && images.isNotEmpty) {
         for (var image in images) {
           request.files.add(
             await http.MultipartFile.fromPath(
-              'images[]',
+              'image_url[]',
               image.path,
               filename: image.name,
             ),
@@ -355,7 +409,7 @@ class ApiService {
       final responseBody = await http.Response.fromStream(response);
       print(responseBody.body);
 
-      if (response.statusCode != 200) {
+      if (response.statusCode != 200 && response.statusCode != 201) {
         final data = jsonDecode(responseBody.body);
         throw Exception(data['message'] ?? 'Failed to update apartment');
       }
@@ -428,6 +482,30 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Get apartment details failed: $e');
+    }
+  }
+
+  static Future<void> recordApartmentView(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/apartment/view/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (_token != null) 'Authorization': 'Bearer $_token',
+        },
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        String message = 'Failed to record apartment view';
+        if (response.body.isNotEmpty) {
+          final data = jsonDecode(response.body);
+          message = data['message'] ?? message;
+        }
+        throw Exception(message);
+      }
+    } catch (e) {
+      debugPrint('Record apartment view failed: $e');
     }
   }
 
@@ -719,23 +797,55 @@ class ApiService {
 
   static Future<List<DateTime>> getUnavailableDates(String apartmentId) async {
     try {
+      if (_token == null) throw Exception('Not authenticated');
+
       final response = await http.get(
         Uri.parse('$baseUrl/order/user/unavailable_dates/$apartmentId'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          if (_token != null) 'Authorization': 'Bearer $_token',
+          'Authorization': 'Bearer $_token',
         },
       );
       print(response.body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final List<dynamic> dates = data['data'] ?? data;
-        return dates.map((e) => DateTime.parse(e.toString())).toList();
-      } else {
+        if (data is Map<String, dynamic>) {
+          final raw = data['unavailable_dates'];
+          if (raw is List) {
+            return raw
+                .map((e) => DateTime.parse(e.toString()))
+                .toList(growable: false);
+          }
+          final dataField = data['data'];
+          if (dataField is List) {
+            return dataField
+                .map((e) => DateTime.parse(e.toString()))
+                .toList(growable: false);
+          }
+          if (dataField is Map<String, dynamic>) {
+            final nested = dataField['unavailable_dates'];
+            if (nested is List) {
+              return nested
+                  .map((e) => DateTime.parse(e.toString()))
+                  .toList(growable: false);
+            }
+          }
+          if (raw is Map<String, dynamic>) {
+            final nested =
+                raw['unavailable_dates'] ?? raw['data'] ?? raw['dates'];
+            if (nested is List) {
+              return nested
+                  .map((e) => DateTime.parse(e.toString()))
+                  .toList(growable: false);
+            }
+          }
+        }
         return [];
       }
+      final data = jsonDecode(response.body);
+      throw Exception(data['message'] ?? 'Failed to load unavailable dates');
     } catch (e) {
       debugPrint('Error getting unavailable dates: $e');
       return [];
@@ -863,13 +973,56 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final dynamic data = jsonDecode(response.body);
-        return data['data'] ?? [];
+        if (data is Map<String, dynamic>) {
+          final ratings = data['ratings'] ?? data['data'] ?? [];
+          return ratings is List ? ratings : [];
+        }
+        if (data is List) return data;
+        return [];
       } else {
         throw Exception('Failed to load ratings');
       }
     } catch (e) {
       debugPrint('Get ratings failed: $e');
       return [];
+    }
+  }
+
+  static Future<RatingSummary?> getApartmentRatingSummary(
+    String apartmentId,
+  ) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/rating/index/$apartmentId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (_token != null) 'Authorization': 'Bearer $_token',
+        },
+      );
+      print(response.body);
+
+      if (response.statusCode == 200) {
+        final dynamic data = jsonDecode(response.body);
+        if (data is Map<String, dynamic>) {
+          final source =
+              data['data'] is Map<String, dynamic> ? data['data'] : data;
+          return RatingSummary(
+            averageRating: _toDouble(
+              source['average_rating'] ?? source['average'] ?? source['rating'],
+            ),
+            ratingsCount: _toInt(
+              source['ratings_count'] ??
+                  source['count'] ??
+                  source['review_count'],
+            ),
+          );
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Get rating summary failed: $e');
+      return null;
     }
   }
 

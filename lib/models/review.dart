@@ -19,6 +19,46 @@ class Review {
     required this.date,
   });
 
+  factory Review.fromJson(Map<String, dynamic> json) {
+    final user = json['user'];
+    String firstName = '';
+    String lastName = '';
+    String? photo;
+    if (user is Map<String, dynamic>) {
+      firstName = user['first_name']?.toString() ?? '';
+      lastName = user['last_name']?.toString() ?? '';
+      final userPhoto = user['photo'];
+      if (userPhoto is String && userPhoto.isNotEmpty) {
+        photo = userPhoto;
+      }
+    }
+    final fullName = [firstName, lastName]
+        .where((part) => part.trim().isNotEmpty)
+        .join(' ')
+        .trim();
+
+    return Review(
+      id: json['id']?.toString() ?? '',
+      propertyId:
+          (json['appartment_id'] ?? json['apartment_id'] ?? '').toString(),
+      reviewerId: json['user_id']?.toString() ?? '',
+      reviewerName: fullName.isNotEmpty
+          ? fullName
+          : (json['user_name']?.toString() ?? 'Anonymous'),
+      reviewerPhoto: photo,
+      rating: _toDouble(json['rating']),
+      comment: json['comment']?.toString() ?? '',
+      date: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+    );
+  }
+
+  static double _toDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
   // Mock data generator
   static List<Review> getMockReviews() {
     return [

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:maisonel_v02/l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/property.dart';
+import '../../models/review.dart';
 import '../../theme.dart';
 import 'booking_screen.dart';
 import '../../services/api_service.dart';
@@ -18,11 +19,13 @@ class PropertyDetailsScreen extends StatefulWidget {
 
 class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   late bool _isFavorite;
+  late Future<List<Review>> _reviewsFuture;
 
   @override
   void initState() {
     super.initState();
     _isFavorite = widget.property.isFavorite;
+    _reviewsFuture = _loadReviews();
 
     // Cross-reference with UserCubit to ensure accurate favorite status
     final userState = context.read<UserCubit>().state;
@@ -34,6 +37,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         _isFavorite = true;
       }
     }
+
+    ApiService.recordApartmentView(widget.property.id);
   }
 
   @override
@@ -42,6 +47,108 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     if (oldWidget.property.isFavorite != widget.property.isFavorite) {
       _isFavorite = widget.property.isFavorite;
     }
+    if (oldWidget.property.id != widget.property.id) {
+      _reviewsFuture = _loadReviews();
+    }
+  }
+
+  Future<List<Review>> _loadReviews() async {
+    final data = await ApiService.getApartmentRatings(widget.property.id);
+    final reviews = <Review>[];
+    for (final item in data) {
+      if (item is Map<String, dynamic>) {
+        reviews.add(Review.fromJson(item));
+      } else if (item is Map) {
+        reviews.add(Review.fromJson(Map<String, dynamic>.from(item)));
+      }
+    }
+    return reviews;
+  }
+
+  String _formatDate(DateTime date) {
+    final year = date.year.toString().padLeft(4, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
+  }
+
+  Widget _buildRatingStars(double rating) {
+    return Row(
+      children: List.generate(5, (index) {
+        final position = index + 1;
+        if (rating >= position) {
+          return const Icon(Icons.star, size: 16, color: Colors.amber);
+        }
+        if (rating > index && rating < position) {
+          return const Icon(Icons.star_half, size: 16, color: Colors.amber);
+        }
+        return const Icon(Icons.star_border, size: 16, color: Colors.amber);
+      }),
+    );
+  }
+
+  Widget _buildReviewCard(Review review) {
+    final initials = review.reviewerName.isNotEmpty
+        ? review.reviewerName.trim()[0].toUpperCase()
+        : 'A';
+    final reviewerPhoto = ApiService.getImageUrl(review.reviewerPhoto);
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        boxShadow: AppShadows.small,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                backgroundImage:
+                    reviewerPhoto != null && reviewerPhoto.isNotEmpty
+                        ? NetworkImage(reviewerPhoto)
+                        : null,
+                child: reviewerPhoto == null || reviewerPhoto.isEmpty
+                    ? Text(
+                        initials,
+                        style: const TextStyle(color: Colors.white),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      review.reviewerName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _formatDate(review.date),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              _buildRatingStars(review.rating),
+            ],
+          ),
+          if (review.comment.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              review.comment,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   @override
@@ -161,6 +268,23 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                 ),
                               ],
                             ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.visibility,
+                                  size: 16,
+                                  color: Colors.grey[600],
+                                ),
+                                const SizedBox(width: AppSpacing.xs),
+                                Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.viewsCount(widget.property.viewCount),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -243,6 +367,57 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         side: BorderSide.none,
                       );
                     }).toList(),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  Text(
+                    'Reviews',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  FutureBuilder<List<Review>>(
+                    future: _reviewsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                      if (snapshot.hasError) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.error(snapshot.error.toString()),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _reviewsFuture = _loadReviews();
+                                });
+                              },
+                              child: Text(
+                                AppLocalizations.of(context)!.retry,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      final reviews = snapshot.data ?? [];
+                      if (reviews.isEmpty) {
+                        return const Text('No reviews yet.');
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: reviews
+                            .map((review) => _buildReviewCard(review))
+                            .toList(),
+                      );
+                    },
                   ),
                   const SizedBox(height: 100), // Spacing for bottom button
                 ],

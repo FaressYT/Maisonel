@@ -95,4 +95,12 @@ class OrderCubit extends Cubit<OrderState> {
       emit(OrderError(errorMessage));
     }
   }
+
+  Future<List<DateTime>> getUnavailableDates(String apartmentId) async {
+    try {
+      return await ApiService.getUnavailableDates(apartmentId);
+    } catch (e) {
+      return [];
+    }
+  }
 }

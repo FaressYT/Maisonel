@@ -19,6 +19,7 @@ class ApartmentCubit extends Cubit<ApartmentState> {
       );
     } catch (e) {
       emit(ApartmentError(e.toString()));
+      rethrow;
     }
   }
 
@@ -53,6 +54,7 @@ class ApartmentCubit extends Cubit<ApartmentState> {
       await loadApartments(); // Reload lists
     } catch (e) {
       emit(ApartmentError(e.toString()));
+      rethrow;
     }
   }
 
@@ -89,6 +91,7 @@ class ApartmentCubit extends Cubit<ApartmentState> {
       await loadApartments(); // Reload
     } catch (e) {
       emit(ApartmentError(e.toString()));
+      rethrow;
     }
   }
 
@@ -99,6 +102,7 @@ class ApartmentCubit extends Cubit<ApartmentState> {
       await loadApartments(); // Reload
     } catch (e) {
       emit(ApartmentError(e.toString()));
+      rethrow;
     }
   }
 
@@ -109,6 +113,7 @@ class ApartmentCubit extends Cubit<ApartmentState> {
       await loadApartments(); // Reload to get updated status
     } catch (e) {
       emit(ApartmentError(e.toString()));
+      rethrow;
     }
   }
 
@@ -119,6 +124,7 @@ class ApartmentCubit extends Cubit<ApartmentState> {
       await loadApartments(); // Reload to get updated images
     } catch (e) {
       emit(ApartmentError(e.toString()));
+      rethrow;
     }
   }
 }

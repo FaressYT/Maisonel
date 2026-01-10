@@ -22,6 +22,7 @@ class Property {
   final String ownerId;
   final DateTime availableFrom;
   final List<String> amenities;
+  final int viewCount;
 
   Property({
     required this.id,
@@ -45,7 +46,36 @@ class Property {
     required this.ownerId,
     required this.availableFrom,
     required this.amenities,
+    this.viewCount = 0,
   });
+
+  Property withRating({required double rating, required int reviewCount}) {
+    return Property(
+      id: id,
+      title: title,
+      description: description,
+      price: price,
+      location: location,
+      city: city,
+      country: country,
+      images: images,
+      bedrooms: bedrooms,
+      bathrooms: bathrooms,
+      area: area,
+      propertyType: propertyType,
+      rating: rating,
+      reviewCount: reviewCount,
+      isFeatured: isFeatured,
+      isActive: isActive,
+      approvalStatus: approvalStatus,
+      isFavorite: isFavorite,
+      ownerId: ownerId,
+      availableFrom: availableFrom,
+      amenities: amenities,
+      viewCount: viewCount,
+    );
+  }
+
   factory Property.fromJson(Map<String, dynamic> json) {
     return Property(
       id: json['id']?.toString() ?? '',
@@ -72,6 +102,7 @@ class Property {
           ? DateTime.parse(json['available_from'])
           : DateTime.now(),
       amenities: _parseList(json['amenities']),
+      viewCount: json['views'] ?? json['view_count'] ?? 0,
     );
   }
 

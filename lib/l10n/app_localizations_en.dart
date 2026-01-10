@@ -386,7 +386,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get description => 'Description';
 
   @override
-  String get pricePerNight => 'Price per night';
+  String get pricePerNight => 'Price per month';
 
   @override
   String get selectType => 'Select Type';
@@ -467,6 +467,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectStartDate => 'Select Start Date';
+
+  @override
+  String get dateUnavailable => 'Selected date range includes unavailable days';
 
   @override
   String get monthsDurationLabel => 'Duration (Months)';

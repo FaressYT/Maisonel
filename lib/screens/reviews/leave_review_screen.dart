@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:maisonel_v02/l10n/app_localizations.dart';
 import '../../theme.dart';
@@ -23,6 +24,65 @@ class _LeaveReviewScreenState extends State<LeaveReviewScreen> {
   final _commentController = TextEditingController();
   double _rating = 0;
   bool _isLoading = false;
+
+  bool _isFilePath(String path) {
+    if (path.startsWith('file://')) return true;
+    if (path.startsWith('/') || path.startsWith('\\')) return true;
+    return RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(path);
+  }
+
+  String? _resolveImagePath(String rawPath) {
+    if (_isFilePath(rawPath)) return rawPath;
+    return ApiService.getImageUrl(rawPath);
+  }
+
+  Widget _buildImageFallback() {
+    return Container(
+      width: 60,
+      height: 60,
+      color: Colors.grey[300],
+      child: Icon(
+        Icons.image_not_supported,
+        size: 28,
+        color: Colors.grey[600],
+      ),
+    );
+  }
+
+  Widget _buildPropertyImage() {
+    final rawPath =
+        widget.property.images.isNotEmpty ? widget.property.images.first : null;
+    if (rawPath == null || rawPath.isEmpty) {
+      return _buildImageFallback();
+    }
+
+    final resolvedPath = _resolveImagePath(rawPath);
+    if (resolvedPath == null || resolvedPath.isEmpty) {
+      return _buildImageFallback();
+    }
+
+    if (_isFilePath(resolvedPath)) {
+      final file = resolvedPath.startsWith('file://')
+          ? File.fromUri(Uri.parse(resolvedPath))
+          : File(resolvedPath);
+      return Image.file(
+        file,
+        width: 60,
+        height: 60,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            _buildImageFallback(),
+      );
+    }
+
+    return Image.network(
+      resolvedPath,
+      width: 60,
+      height: 60,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _buildImageFallback(),
+    );
+  }
 
   void _submitReview() async {
     if (_rating == 0) {
@@ -93,12 +153,7 @@ class _LeaveReviewScreenState extends State<LeaveReviewScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
-                    child: Image.network(
-                      widget.property.images[0],
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    ),
+                    child: _buildPropertyImage(),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(

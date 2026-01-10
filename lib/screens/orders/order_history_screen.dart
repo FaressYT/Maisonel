@@ -31,6 +31,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   void initState() {
     super.initState();
     // Load orders via Cubit
+    context.read<ApartmentCubit>().loadApartments();
     context.read<OrderCubit>().loadUserOrders();
   }
 
@@ -46,12 +47,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         .toList();
   }
 
-  Property? _getProperty(Order order) {
+  Property? _getProperty(Order order, ApartmentState apartmentState) {
     // 1. Try property from order itself
     if (order.property != null) return order.property;
 
     // 2. Try looking up in ApartmentCubit
-    final apartmentState = context.read<ApartmentCubit>().state;
     if (apartmentState is ApartmentLoaded) {
       try {
         return apartmentState.availableApartments.firstWhere(
@@ -71,10 +71,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     return null;
   }
 
-  void _showOrderDetails(Order order) {
-    // Resolve property locally
-    final property = _getProperty(order);
-
+  void _showOrderDetails(Order order, Property? property) {
     // We don't fetch from API anymore, use the data we have
     _buildDetailsBottomSheet(context, order, property);
   }
@@ -284,53 +281,66 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   }
 
   Widget _buildBody() {
-    return BlocBuilder<OrderCubit, OrderState>(
-      builder: (context, state) {
-        if (state is OrderLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is OrderError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(state.message, style: const TextStyle(color: Colors.red)),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () => context.read<OrderCubit>().loadUserOrders(),
-                  child: Text(AppLocalizations.of(context)!.retry),
+    return BlocBuilder<ApartmentCubit, ApartmentState>(
+      builder: (context, apartmentState) {
+        return BlocBuilder<OrderCubit, OrderState>(
+          builder: (context, state) {
+            if (state is OrderLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is OrderError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      state.message,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () =>
+                          context.read<OrderCubit>().loadUserOrders(),
+                      child: Text(AppLocalizations.of(context)!.retry),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        } else if (state is OrderLoaded) {
-          final filteredOrders = _filterOrders(state.userOrders);
-          return filteredOrders.isEmpty
-              ? _buildEmptyState()
-              : RefreshIndicator(
-                  onRefresh: () async =>
-                      context.read<OrderCubit>().loadUserOrders(),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    itemCount: filteredOrders.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: _buildOrderCard(filteredOrders[index]),
-                      );
-                    },
-                  ),
-                );
-        }
-        return const SizedBox.shrink();
+              );
+            } else if (state is OrderLoaded) {
+              final filteredOrders = _filterOrders(state.userOrders);
+              return filteredOrders.isEmpty
+                  ? _buildEmptyState()
+                  : RefreshIndicator(
+                      onRefresh: () async =>
+                          context.read<OrderCubit>().loadUserOrders(),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        itemCount: filteredOrders.length,
+                        itemBuilder: (context, index) {
+                          final order = filteredOrders[index];
+                          final property = _getProperty(
+                            order,
+                            apartmentState,
+                          );
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: AppSpacing.md,
+                            ),
+                            child: _buildOrderCard(order, property),
+                          );
+                        },
+                      ),
+                    );
+            }
+            return const SizedBox.shrink();
+          },
+        );
       },
     );
   }
 
-  Widget _buildOrderCard(Order order) {
-    final property = _getProperty(order);
-
+  Widget _buildOrderCard(Order order, Property? property) {
     return GestureDetector(
-      onTap: () => _showOrderDetails(order),
+      onTap: () => _showOrderDetails(order, property),
       child: Card(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),

@@ -202,19 +202,6 @@ class _AccountScreenState extends State<AccountScreen> {
                   _buildSectionHeader(AppLocalizations.of(context)!.account),
                   _buildSettingCard([
                     _buildSettingTile(
-                      icon: Icons.person_outline,
-                      title: AppLocalizations.of(context)!.editProfile,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AccountScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildDivider(),
-                    _buildSettingTile(
                       icon: Icons.favorite_border,
                       title: AppLocalizations.of(context)!.myFavorites,
                       onTap: () {
@@ -260,21 +247,6 @@ class _AccountScreenState extends State<AccountScreen> {
                     _buildSettingTile(
                       icon: Icons.dashboard_outlined,
                       title: AppLocalizations.of(context)!.bookingRequests,
-                      trailing: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Text(
-                          '1',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
                       onTap: () {
                         Navigator.push(
                           context,

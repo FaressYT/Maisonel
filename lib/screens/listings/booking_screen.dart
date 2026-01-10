@@ -19,6 +19,7 @@ class _BookingScreenState extends State<BookingScreen> {
   DateTimeRange? selectedDateRange;
   DateTime? startMonth;
   int monthsDuration = 1;
+  Set<String> _unavailableDates = {};
 
   // Calculate total price
   double get totalPrice {
@@ -35,6 +36,55 @@ class _BookingScreenState extends State<BookingScreen> {
       final days = selectedDateRange!.duration.inDays;
       return (widget.property.price / 30) * days;
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnavailableDates();
+  }
+
+  Future<void> _loadUnavailableDates() async {
+    final dates = await context.read<OrderCubit>().getUnavailableDates(
+      widget.property.id,
+    );
+    if (!mounted) return;
+    setState(() {
+      _unavailableDates = dates.map(_dateKey).toSet();
+    });
+  }
+
+  String _dateKey(DateTime date) {
+    final year = date.year.toString().padLeft(4, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
+  }
+
+  bool _isDateUnavailable(DateTime date) {
+    return _unavailableDates.contains(_dateKey(date));
+  }
+
+  bool _rangeHasUnavailableDates(DateTime start, DateTime endExclusive) {
+    var day = DateTime(start.year, start.month, start.day);
+    final end = DateTime(endExclusive.year, endExclusive.month, endExclusive.day);
+    while (day.isBefore(end)) {
+      if (_isDateUnavailable(day)) return true;
+      day = day.add(const Duration(days: 1));
+    }
+    return false;
+  }
+
+  bool _isMonthlyRangeAvailable(DateTime start, int months) {
+    final end = DateTime(start.year, start.month + months, start.day);
+    return !_rangeHasUnavailableDates(start, end);
+  }
+
+  int _maxAvailableMonthsFrom(DateTime start) {
+    for (var months = 1; months <= 12; months++) {
+      if (!_isMonthlyRangeAvailable(start, months)) return months - 1;
+    }
+    return 12;
   }
 
   @override
@@ -272,11 +322,17 @@ class _BookingScreenState extends State<BookingScreen> {
       children: [
         InkWell(
           onTap: () async {
-            final picked = await showDateRangePicker(
+            final picked = await showDialog<DateTimeRange>(
               context: context,
-              firstDate: DateTime.now(),
-              lastDate: DateTime.now().add(const Duration(days: 365)),
-              initialDateRange: selectedDateRange,
+              builder: (context) {
+                return DateRangePickerDialog(
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                  initialDateRange: selectedDateRange,
+                  selectableDayPredicate: (day, start, end) =>
+                      !_isDateUnavailable(day),
+                );
+              },
             );
             if (picked != null) {
               setState(() {
@@ -323,10 +379,26 @@ class _BookingScreenState extends State<BookingScreen> {
               firstDate: DateTime.now(),
               lastDate: DateTime.now().add(const Duration(days: 365)),
               initialDate: startMonth ?? DateTime.now(),
+              selectableDayPredicate: (day) => !_isDateUnavailable(day),
             );
             if (picked != null) {
+              final maxAllowed = _maxAvailableMonthsFrom(picked);
+              if (maxAllowed < 1) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(context)!.dateUnavailable,
+                    ),
+                  ),
+                );
+                return;
+              }
               setState(() {
                 startMonth = picked;
+                if (monthsDuration > maxAllowed) {
+                  monthsDuration = maxAllowed;
+                }
               });
             }
           },
@@ -362,7 +434,14 @@ class _BookingScreenState extends State<BookingScreen> {
           label: AppLocalizations.of(context)!.monthsCount(monthsDuration),
           onChanged: (val) {
             setState(() {
-              monthsDuration = val.round();
+              final nextDuration = val.round();
+              if (startMonth == null) {
+                monthsDuration = nextDuration;
+                return;
+              }
+              final maxAllowed = _maxAvailableMonthsFrom(startMonth!);
+              monthsDuration =
+                  nextDuration <= maxAllowed ? nextDuration : maxAllowed;
             });
           },
         ),

@@ -815,7 +815,7 @@ abstract class AppLocalizations {
   /// No description provided for @pricePerNight.
   ///
   /// In en, this message translates to:
-  /// **'Price per night'**
+  /// **'Price per month'**
   String get pricePerNight;
 
   /// No description provided for @selectType.
@@ -967,6 +967,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select Start Date'**
   String get selectStartDate;
+
+  /// No description provided for @dateUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected date range includes unavailable days'**
+  String get dateUnavailable;
 
   /// No description provided for @monthsDurationLabel.
   ///

@@ -49,11 +49,7 @@ class MaisonelApp extends StatelessWidget {
                 supportedLocales: AppLocalizations.supportedLocales,
                 home: const LoginScreen(),
 
-                // TODO: fix apartment upload photos when editing apartment
-                // TODO: whenever someone opens an apartment, add a view
-                // TODO: add ammenities in the listing addition / editing
                 // TODO: when someone orders a booking, it should have his name and number in the booking request.
-                // TODO: edit profile option back + froot
               );
             },
           );
